@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TaskItem } from "./TaskItem";
 import { cn } from "@/lib/utils";
@@ -17,10 +17,12 @@ const STATUS_BADGE: Record<PlanDay["status"], React.ReactNode> = {
 
 interface Props {
   day: PlanDay;
+  hook?: string;
+  taskWhys?: Map<string, string>;
   defaultOpen?: boolean;
 }
 
-export function DayCard({ day, defaultOpen = false }: Props) {
+export function DayCard({ day, hook, taskWhys, defaultOpen = false }: Props) {
   const [open, setOpen] = useState(defaultOpen);
   const [tasks, setTasks] = useState<Task[]>(day.tasks);
 
@@ -48,7 +50,10 @@ export function DayCard({ day, defaultOpen = false }: Props) {
             <span className="text-xs text-muted-foreground">{formatDateShort(day.dateOn)}</span>
             {STATUS_BADGE[day.status]}
           </div>
-          <div className="text-sm font-medium mt-0.5 truncate">{day.theme}</div>
+          <div className="text-sm font-medium mt-0.5">{day.theme}</div>
+          {hook && !open && (
+            <div className="text-xs text-muted-foreground mt-0.5 line-clamp-1">{hook}</div>
+          )}
         </div>
         <div className="text-right shrink-0">
           <div className="text-xs text-muted-foreground">{completedCount}/{tasks.length} tasks</div>
@@ -57,13 +62,28 @@ export function DayCard({ day, defaultOpen = false }: Props) {
       </button>
 
       {open && (
-        <div className="border-t border-border p-4 space-y-2">
-          {day.summary && (
-            <p className="text-xs text-muted-foreground pb-2">{day.summary}</p>
+        <div className="border-t border-border">
+          {/* Hook callout */}
+          {hook && (
+            <div className="px-4 py-3 bg-primary/5 border-b border-primary/10 flex items-start gap-2">
+              <Zap className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+              <p className="text-xs text-primary leading-relaxed">{hook}</p>
+            </div>
           )}
-          {tasks.map((task) => (
-            <TaskItem key={task.id} task={task} onStatusChange={handleStatusChange} />
-          ))}
+
+          <div className="p-4 space-y-2">
+            {day.summary && (
+              <p className="text-xs text-muted-foreground pb-1">{day.summary}</p>
+            )}
+            {tasks.map((task) => (
+              <TaskItem
+                key={task.id}
+                task={task}
+                why={taskWhys?.get(`${day.dayNumber}-${task.position}`)}
+                onStatusChange={handleStatusChange}
+              />
+            ))}
+          </div>
         </div>
       )}
     </div>

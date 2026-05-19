@@ -9,11 +9,13 @@ Return ONLY valid JSON matching the schema provided. No markdown wrapper, no pro
 
 const PLAN_JSON_SCHEMA = {
   difficulty: "gentle | normal | accelerated",
+  narrative: "2-3 sentences connecting the user's stated goals to what they will concretely be able to build/do by day 7. Make it personal and specific — reference their background, their goals, and the exact artifact they'll produce. No generic phrases.",
   days: [
     {
       dayNumber: "number 1-7",
       theme: "one-line topic focus",
       summary: "1-2 sentence description of the day",
+      hook: "One sentence starting with 'By the end of today,' describing the exact runnable artifact or concrete skill the user will have — specific enough to be genuinely exciting",
       tasks: [
         {
           position: "number starting at 1",
@@ -23,6 +25,7 @@ const PLAN_JSON_SCHEMA = {
           resourceUrl: "url string or null",
           durationMin: "estimated minutes as integer",
           difficulty: "easy | medium | hard",
+          why: "One sentence: why this specific task is in the plan right now — connect it to the user's goals or explain what the next task depends on it for",
         },
       ],
     },
@@ -68,6 +71,11 @@ SEQUENCING RULES:
 - Days 2-5: progressive skill building with increasing complexity
 - Day 6: integration (combine skills from earlier days)
 - Day 7: project milestone and reflection
+
+NARRATIVE REQUIREMENTS:
+- The "narrative" field must reference the user's actual goals (${goalList}) and their current level (${profile.aimlFamiliarity.replace(/_/g, " ")})
+- Each day's "hook" must name the exact artifact or skill — e.g. "By the end of today, you'll have a working Python script that encodes sentences into vectors and prints their cosine similarity" not "you'll understand embeddings"
+- Each task's "why" must be specific — explain the causal chain: what this unlocks, or why it's sequenced here
 
 Return ONLY this JSON schema (no prose, no markdown):
 ${JSON.stringify(PLAN_JSON_SCHEMA, null, 2)}`;

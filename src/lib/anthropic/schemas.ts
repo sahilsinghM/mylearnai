@@ -8,12 +8,14 @@ const claudeTaskSchema = z.object({
   resourceUrl: z.string().url().nullable(),
   durationMin: z.number().int().positive(),
   difficulty: z.enum(["easy", "medium", "hard"]),
+  why: z.string().optional(),
 });
 
 const claudeDaySchema = z.object({
   dayNumber: z.number().int().min(1).max(7),
   theme: z.string().min(1),
   summary: z.string().min(1),
+  hook: z.string().optional(),
   tasks: z.array(claudeTaskSchema).min(1).max(6),
 });
 
@@ -25,6 +27,7 @@ const claudeMilestoneSchema = z.object({
 
 export const claudePlanSchema = z.object({
   difficulty: z.enum(["gentle", "normal", "accelerated"]),
+  narrative: z.string().optional(),
   days: z.array(claudeDaySchema).length(7),
   project: z.object({
     name: z.string().min(1),

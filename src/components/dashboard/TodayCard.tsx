@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Zap } from "lucide-react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { TaskItem } from "@/components/plan/TaskItem";
 import type { PlanDay, Task } from "@/types/plan";
@@ -8,9 +9,10 @@ import { formatDate } from "@/lib/utils";
 
 interface Props {
   day: PlanDay | undefined;
+  hook?: string;
 }
 
-export function TodayCard({ day }: Props) {
+export function TodayCard({ day, hook }: Props) {
   const [tasks, setTasks] = useState<Task[]>(day?.tasks ?? []);
 
   if (!day) {
@@ -33,7 +35,13 @@ export function TodayCard({ day }: Props) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
+      {hook && (
+        <div className="px-4 py-3 bg-primary/5 border-b border-primary/10 flex items-start gap-2">
+          <Zap className="h-3.5 w-3.5 text-primary mt-0.5 shrink-0" />
+          <p className="text-xs text-primary leading-relaxed">{hook}</p>
+        </div>
+      )}
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div>

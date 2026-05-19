@@ -10,6 +10,7 @@ import type { Task } from "@/types/plan";
 
 interface Props {
   task: Task;
+  why?: string;
   compact?: boolean;
   onStatusChange?: (taskId: string, newStatus: Task["status"]) => void;
 }
@@ -21,7 +22,7 @@ const TYPE_COLORS: Record<Task["type"], string> = {
   exercise: "bg-amber-900/40 text-amber-400",
 };
 
-export function TaskItem({ task, compact = false, onStatusChange }: Props) {
+export function TaskItem({ task, why, compact = false, onStatusChange }: Props) {
   const { toast } = useToast();
   const [status, setStatus] = useState(task.status);
   const [loading, setLoading] = useState(false);
@@ -81,6 +82,10 @@ export function TaskItem({ task, compact = false, onStatusChange }: Props) {
 
         {!compact && task.description && (
           <p className="text-xs text-muted-foreground leading-relaxed">{task.description}</p>
+        )}
+
+        {!compact && why && (
+          <p className="text-xs text-zinc-500 italic border-l-2 border-zinc-700 pl-2">{why}</p>
         )}
 
         {!compact && task.resourceUrl && (

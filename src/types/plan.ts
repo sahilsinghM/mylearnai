@@ -76,12 +76,14 @@ export interface ClaudeTask {
   resourceUrl: string | null;
   durationMin: number;
   difficulty: Difficulty;
+  why?: string;
 }
 
 export interface ClaudeDay {
   dayNumber: number;
   theme: string;
   summary: string;
+  hook?: string;
   tasks: ClaudeTask[];
 }
 
@@ -93,6 +95,7 @@ export interface ClaudeMilestone {
 
 export interface ClaudePlanJSON {
   difficulty: PlanDifficulty;
+  narrative?: string;
   days: ClaudeDay[];
   project: {
     name: string;

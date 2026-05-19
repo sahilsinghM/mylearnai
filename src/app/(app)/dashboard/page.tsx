@@ -5,21 +5,21 @@ import { WeekOverview } from "@/components/dashboard/WeekOverview";
 import { ProjectCard } from "@/components/dashboard/ProjectCard";
 import { StatsBar } from "@/components/dashboard/StatsBar";
 import { getToday } from "@/lib/utils";
-import type { LearningPlan, PlanDay, Task, Milestone, Project } from "@/types/plan";
+import type { LearningPlan, PlanDay, Task, Milestone, Project, ClaudePlanJSON } from "@/types/plan";
 
 async function getPlanData(userId: string) {
   const supabase = await createClient();
 
   const { data: planRow } = await supabase
     .from("learning_plans")
-    .select("id, week_number, status, difficulty, starts_on, ends_on")
+    .select("id, week_number, status, difficulty, starts_on, ends_on, plan_json")
     .eq("user_id", userId)
     .eq("status", "active")
     .order("generated_at", { ascending: false })
     .limit(1)
     .single();
 
-  if (!planRow) return { plan: null, days: [] };
+  if (!planRow) return { plan: null, days: [], dayHooks: new Map<number, string>() };
 
   const { data: dayRows } = await supabase
     .from("plan_days")
@@ -75,7 +75,15 @@ async function getPlanData(userId: string) {
     days,
   };
 
-  return { plan, days };
+  const dayHooks = new Map<number, string>();
+  const planJson = planRow.plan_json as ClaudePlanJSON | null;
+  if (planJson?.days) {
+    for (const d of planJson.days) {
+      if (d.hook) dayHooks.set(d.dayNumber, d.hook);
+    }
+  }
+
+  return { plan, days, dayHooks };
 }
 
 async function getProjectData(userId: string): Promise<Project | null> {
@@ -127,7 +135,7 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [{ plan, days }, project] = await Promise.all([
+  const [{ plan, days, dayHooks }, project] = await Promise.all([
     getPlanData(user.id),
     getProjectData(user.id),
   ]);
@@ -135,6 +143,7 @@ export default async function DashboardPage() {
   const today = getToday();
   const todayDay = days.find((d) => d.dateOn === today) ?? days[0];
   const todayDayNumber = todayDay?.dayNumber ?? 1;
+  const todayHook = todayDay ? dayHooks.get(todayDay.dayNumber) : undefined;
 
   return (
     <div>
@@ -155,7 +164,7 @@ export default async function DashboardPage() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           <div className="space-y-2">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Today&apos;s tasks</h2>
-            <TodayCard day={todayDay} />
+            <TodayCard day={todayDay} hook={todayHook} />
           </div>
           <div className="space-y-2">
             <h2 className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Project</h2>
