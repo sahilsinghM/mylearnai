@@ -26,7 +26,7 @@ export function SignUpForm() {
     }
 
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signUp({
+    const { data, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
@@ -34,6 +34,13 @@ export function SignUpForm() {
 
     if (authError) {
       setError(authError.message);
+      setLoading(false);
+      return;
+    }
+
+    // Supabase returns 200 with empty identities when the email already exists
+    if (data.user && data.user.identities?.length === 0) {
+      setError("An account with this email already exists. Sign in instead.");
       setLoading(false);
       return;
     }
