@@ -30,6 +30,8 @@ export function OnboardingWizard() {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [generating, setGenerating] = useState(false);
+  const [streamText, setStreamText] = useState("");
+  const [streamStatus, setStreamStatus] = useState("Connecting...");
   const [error, setError] = useState("");
 
   const [profile, setProfile] = useState<Partial<OnboardingProfile>>({
@@ -60,28 +62,66 @@ export function OnboardingWizard() {
   async function handleSubmit() {
     setError("");
     setGenerating(true);
+    setStreamText("");
+    setStreamStatus("Connecting...");
 
     try {
-      const res = await fetch("/api/onboarding", {
+      const res = await fetch("/api/onboarding/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(profile),
       });
 
-      if (!res.ok) {
+      if (!res.ok || !res.body) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.error || "Something went wrong");
+        throw new Error(data.error || "Failed to connect");
       }
 
-      router.push("/dashboard");
-      router.refresh();
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const raw = line.slice(6).trim();
+          if (!raw) continue;
+
+          let event: { type: string; text?: string; message?: string; planId?: string; projectId?: string };
+          try {
+            event = JSON.parse(raw);
+          } catch {
+            continue;
+          }
+
+          if (event.type === "chunk" && event.text) {
+            setStreamText((prev) => prev + event.text);
+          } else if (event.type === "status" && event.message) {
+            setStreamStatus(event.message);
+          } else if (event.type === "done") {
+            setStreamStatus("Plan ready! Redirecting...");
+            router.push("/dashboard");
+            router.refresh();
+            return;
+          } else if (event.type === "error") {
+            throw new Error(event.message || "Generation failed");
+          }
+        }
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to generate plan");
       setGenerating(false);
     }
   }
 
-  if (generating) return <GeneratingPlan />;
+  if (generating) return <GeneratingPlan streamText={streamText} status={streamStatus} />;
 
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
