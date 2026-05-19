@@ -37,28 +37,26 @@ const PLAN_JSON_SCHEMA = {
 };
 
 export function buildInitialPlanPrompt(profile: OnboardingProfile): string {
-  const langList = profile.languages.length ? profile.languages.join(", ") : "not specified";
   const goalList = profile.goals.join(", ").replace(/_/g, " ");
   const interestList = profile.interestAreas.join(", ").replace(/_/g, " ");
-  const coursesText = profile.coursesTaken.length
-    ? profile.coursesTaken.join(", ")
+  const topicsText = profile.familiarTopics.length
+    ? `${profile.familiarTopics.join(", ")} — depth: ${profile.topicDepth.replace(/_/g, " ")}`
     : "none";
 
   return `Generate a 7-day personalized AI/ML learning plan for an engineer with this exact profile:
 
 PROFILE:
 - Programming level: ${profile.programmingLevel}
-- Languages: ${langList}
 - AI/ML familiarity: ${profile.aimlFamiliarity.replace(/_/g, " ")}
 - Math confidence: ${profile.mathConfidence}
 - Goals: ${goalList}
 - Hours available per day: ${profile.hoursPerDay}
 - Interest areas: ${interestList}
-- Courses already completed: ${coursesText}
+- Already familiar with: ${topicsText}
 
 HARD CONSTRAINTS:
 - Total task time per day must fit within ${profile.hoursPerDay} hours (${profile.hoursPerDay * 60} minutes)
-- Skip any topics clearly covered by courses already taken
+- For topics the user already knows at "have_implemented" depth: skip entirely. At "can_explain" depth: go straight to advanced application, no basics. At "heard_of" depth: keep but compress foundations.
 - Each day must have at least 1 build task (type: "build") that produces a real runnable artifact
 - Difficulty selection: use "gentle" if programming_level=beginner OR math_confidence=low; use "accelerated" if programming_level=senior AND math_confidence=high; otherwise "normal"
 - The foundational project MUST be named exactly: "Build a Vector Search Engine from Scratch"

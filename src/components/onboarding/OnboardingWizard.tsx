@@ -11,8 +11,8 @@ import { Step3Math } from "./steps/Step3Math";
 import { Step4Goals } from "./steps/Step4Goals";
 import { Step5Time } from "./steps/Step5Time";
 import { Step6Interests } from "./steps/Step6Interests";
-import { Step7Courses } from "./steps/Step7Courses";
-import type { OnboardingProfile } from "@/types/onboarding";
+import { Step7Topics } from "./steps/Step7Topics";
+import type { OnboardingProfile, TopicDepth } from "@/types/onboarding";
 
 const TOTAL_STEPS = 7;
 
@@ -23,7 +23,7 @@ const STEP_LABELS = [
   "Goals",
   "Time available",
   "Interest areas",
-  "Courses taken",
+  "Familiar topics",
 ];
 
 export function OnboardingWizard() {
@@ -36,7 +36,8 @@ export function OnboardingWizard() {
     languages: [],
     goals: [],
     interestAreas: [],
-    coursesTaken: [],
+    familiarTopics: [],
+    topicDepth: "heard_of",
   });
 
   function update<K extends keyof OnboardingProfile>(key: K, value: OnboardingProfile[K]) {
@@ -51,7 +52,7 @@ export function OnboardingWizard() {
       case 4: return (profile.goals?.length ?? 0) > 0;
       case 5: return !!profile.hoursPerDay;
       case 6: return (profile.interestAreas?.length ?? 0) > 0;
-      case 7: return true;
+      case 7: return profile.familiarTopics?.length === 0 || !!profile.topicDepth;
       default: return false;
     }
   }
@@ -98,7 +99,14 @@ export function OnboardingWizard() {
           {step === 4 && <Step4Goals value={profile.goals ?? []} onChange={(v) => update("goals", v)} />}
           {step === 5 && <Step5Time value={profile.hoursPerDay} onChange={(v) => update("hoursPerDay", v as OnboardingProfile["hoursPerDay"])} />}
           {step === 6 && <Step6Interests value={profile.interestAreas ?? []} onChange={(v) => update("interestAreas", v)} />}
-          {step === 7 && <Step7Courses value={profile.coursesTaken ?? []} onChange={(v) => update("coursesTaken", v)} />}
+          {step === 7 && (
+            <Step7Topics
+              familiarTopics={profile.familiarTopics ?? []}
+              topicDepth={profile.topicDepth}
+              onTopicsChange={(v) => update("familiarTopics", v)}
+              onDepthChange={(v) => update("topicDepth", v as TopicDepth)}
+            />
+          )}
         </div>
 
         {error && <p className="text-sm text-destructive">{error}</p>}

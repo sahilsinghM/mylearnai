@@ -4,6 +4,7 @@ export type MathConfidence = "low" | "medium" | "high" | "phd";
 export type Goal = "get_a_job" | "build_product" | "research" | "curiosity";
 export type InterestArea = "nlp" | "cv" | "rl" | "mlops" | "embeddings" | "agents";
 export type HoursPerDay = 1 | 2 | 3 | 4 | 5;
+export type TopicDepth = "heard_of" | "can_explain" | "have_implemented";
 
 export interface OnboardingProfile {
   programmingLevel: ProgrammingLevel;
@@ -13,5 +14,6 @@ export interface OnboardingProfile {
   goals: Goal[];
   hoursPerDay: HoursPerDay;
   interestAreas: InterestArea[];
-  coursesTaken: string[];
+  familiarTopics: string[];
+  topicDepth: TopicDepth;
 }

@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
       goals: profile.goals,
       hours_per_day: profile.hoursPerDay,
       interest_areas: profile.interestAreas,
-      courses_taken: profile.coursesTaken,
+      courses_taken: profile.familiarTopics.map(t => `${t} [${profile.topicDepth}]`),
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
