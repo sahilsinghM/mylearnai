@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const onboardingSchema = z.object({
   programmingLevel: z.enum(["beginner", "intermediate", "senior", "staff"]),
-  languages: z.array(z.string()).min(1, "Select at least one language"),
+  languages: z.array(z.string()).default([]),
   aimlFamiliarity: z.enum(["none", "heard_of", "used_tools", "built_models", "researcher"]),
   mathConfidence: z.enum(["low", "medium", "high", "phd"]),
   goals: z.array(z.enum(["get_a_job", "build_product", "research", "curiosity"])).min(1),
