@@ -52,7 +52,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
       let buffer = "";
-      let hasContent = false;
+      let accumulated = "";
 
       while (true) {
         const { done, value } = await reader.read();
@@ -63,7 +63,6 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const chunk = line.slice(6);
-          // Check for JSON error sentinel (avoids collision with raw text)
           // Check for JSON error sentinel. SyntaxError means it's a normal text chunk.
           try {
             const evt = JSON.parse(chunk);
@@ -78,28 +77,20 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
           } catch (e) {
             if (!(e instanceof SyntaxError)) throw e;
           }
-          hasContent = true;
+          accumulated += chunk.replace(/\\n/g, "\n");
           setMessages((prev) => {
             const updated = [...prev];
-            updated[updated.length - 1] = {
-              role: "assistant",
-              content: updated[updated.length - 1].content + chunk.replace(/\\n/g, "\n"),
-            };
+            updated[updated.length - 1] = { role: "assistant", content: accumulated };
             return updated;
           });
         }
       }
 
-      if (!hasContent) throw new Error("Empty response from mentor");
+      if (!accumulated) throw new Error("Empty response from mentor");
 
-      // Commit completed assistant turn to clean history
-      setMessages((prev) => {
-        const completed = prev[prev.length - 1];
-        if (completed?.role === "assistant") {
-          cleanHistory.current = [...cleanHistory.current, completed];
-        }
-        return prev;
-      });
+      // Commit completed assistant turn to clean history — outside setState to avoid StrictMode double-invoke
+      const completedMsg: Message = { role: "assistant", content: accumulated };
+      cleanHistory.current = [...cleanHistory.current, completedMsg];
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
@@ -125,8 +116,8 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   async function endSession() {
     if (isEnding || isSending || result) return;
 
-    const assistantTurns = cleanHistory.current.filter((m) => m.role === "assistant");
-    if (assistantTurns.length < 1) {
+    const userTurns = cleanHistory.current.filter((m) => m.role === "user");
+    if (userTurns.length < 1) {
       setError("Have at least one exchange before ending the session.");
       return;
     }
