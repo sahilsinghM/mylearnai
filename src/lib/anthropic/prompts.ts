@@ -1,6 +1,9 @@
 import type { OnboardingProfile } from "@/types/onboarding";
 import type { ClaudePlanJSON } from "@/types/plan";
 
+export const TUTOR_MODEL = "claude-sonnet-4-6";
+export const TUTOR_BOOTSTRAP_TURN = "Begin the session.";
+
 export const SYSTEM_PROMPT = `You are DeepPath, an adaptive AI learning curriculum designer for software engineers learning AI/ML.
 You produce structured, realistic, opinionated learning plans.
 No motivational fluff. Focus on hands-on building over theory.
@@ -139,6 +142,38 @@ CONSTRAINTS:
 
 Return ONLY this JSON schema (no prose, no markdown):
 ${JSON.stringify(PLAN_JSON_SCHEMA, null, 2)}`;
+}
+
+export function buildTutorSystemPrompt(weekTopic: string, weekNumber: number): string {
+  return `You are a rigorous mentor tutoring an engineer on: ${weekTopic}.
+Context: They are on Week ${weekNumber} of their AI/ML learning path.
+
+Rules:
+- Ask ONE question at a time. Never give explanations or answers unprompted.
+- Start with a foundational question on ${weekTopic}.
+- When they answer correctly, probe deeper or adjacent.
+- When they fumble, ask a clarifying question that exposes the gap — never fill it in.
+- Keep responses short (1-3 sentences max).
+- Never say "great answer" or give praise — just probe further.
+- Continue until the user ends the session.`;
+}
+
+export function buildCloseSessionPrompt(weekTopic: string): string {
+  return `You are analyzing a Socratic tutoring transcript on ${weekTopic}.
+Output JSON only (no prose):
+{
+  "gaps": [{ "concept": "string", "severity": "low|med|high", "evidence": "string" }],
+  "projectAssignment": {
+    "title": "string",
+    "description": "string",
+    "acceptance_criteria": ["string"]
+  }
+}
+Rules:
+- Maximum 2 gaps (highest severity only)
+- Project MUST be derived from the gaps, not generic to the topic
+- Acceptance criteria are checkable by running code or inspecting output
+- If gaps are too scattered, pick the one gap with the most fumbled turns`;
 }
 
 export function extractJsonFromResponse(text: string): string {
