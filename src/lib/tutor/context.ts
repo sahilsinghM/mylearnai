@@ -1,6 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 
-export async function getWeekContext(userId: string): Promise<{ weekTopic: string; weekNumber: number } | null> {
+export interface PlanDay {
+  theme: string;
+  status: string;
+  dayNumber: number;
+}
+
+export interface WeekContext {
+  weekTopic: string;
+  weekNumber: number;
+  days: PlanDay[];
+}
+
+export async function getWeekContext(userId: string): Promise<WeekContext | null> {
   const supabase = await createClient();
 
   const { data: plan } = await supabase
@@ -16,7 +28,7 @@ export async function getWeekContext(userId: string): Promise<{ weekTopic: strin
 
   const { data: days } = await supabase
     .from("plan_days")
-    .select("theme, status")
+    .select("theme, status, day_number")
     .eq("plan_id", plan.id)
     .order("day_number");
 
@@ -28,5 +40,13 @@ export async function getWeekContext(userId: string): Promise<{ weekTopic: strin
 
   if (!activeDay?.theme) return null;
 
-  return { weekTopic: activeDay.theme, weekNumber: plan.week_number };
+  return {
+    weekTopic: activeDay.theme,
+    weekNumber: plan.week_number,
+    days: days.map((d) => ({
+      theme: d.theme,
+      status: d.status,
+      dayNumber: d.day_number,
+    })),
+  };
 }
