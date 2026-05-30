@@ -7,6 +7,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --color-card: var(--card);
+  --color-card-2: var(--card-2);
   --color-card-foreground: var(--card-foreground);
   --color-popover: var(--popover);
   --color-popover-foreground: var(--popover-foreground);
@@ -20,6 +21,8 @@
   --color-accent-foreground: var(--accent-foreground);
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-amber: var(--amber);
+  --color-emerald: var(--emerald);
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -36,6 +39,7 @@
   --background: oklch(0.09 0 0);
   --foreground: oklch(0.95 0 0);
   --card: oklch(0.12 0 0);
+  --card-2: oklch(0.145 0 0);
   --card-foreground: oklch(0.95 0 0);
   --popover: oklch(0.12 0 0);
   --popover-foreground: oklch(0.95 0 0);
@@ -44,11 +48,13 @@
   --secondary: oklch(0.18 0 0);
   --secondary-foreground: oklch(0.85 0 0);
   --muted: oklch(0.18 0 0);
-  --muted-foreground: oklch(0.55 0 0);
+  --muted-foreground: oklch(0.58 0 0);
   --accent: oklch(0.18 0 0);
   --accent-foreground: oklch(0.85 0 0);
-  --destructive: oklch(0.55 0.22 27);
+  --destructive: oklch(0.62 0.21 25);
   --destructive-foreground: oklch(0.98 0 0);
+  --amber: oklch(0.78 0.14 78);
+  --emerald: oklch(0.74 0.15 155);
   --border: oklch(0.22 0 0);
   --input: oklch(0.18 0 0);
   --ring: oklch(0.55 0.2 264);
@@ -58,8 +64,33 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-sans), Arial, Helvetica, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  font-feature-settings: "cv01","ss01";
 }
 
 * {
   border-color: var(--border);
 }
+
+/* Transform-only entrance animations — opacity stays 1 so paused animations don't hide content */
+@keyframes dp-rise { from { transform: translateY(9px); } to { transform: none; } }
+@keyframes dp-pop { from { transform: scale(0.94) translateY(6px); } to { transform: none; } }
+@keyframes dp-rev-up { from { transform: translateY(12px); } to { transform: none; } }
+@keyframes dp-stamp { 0% { transform: scale(1.5) rotate(-12deg); } 100% { transform: none; } }
+@keyframes dp-slide-in { from { transform: translateX(24px); } to { transform: none; } }
+@keyframes dp-spin { to { transform: rotate(360deg); } }
+@keyframes dp-blink { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 0.9; } }
+@keyframes dp-pulse {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--emerald) 55%, transparent); }
+  70% { box-shadow: 0 0 0 7px transparent; }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.animate-dp-rise { animation: dp-rise 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.animate-dp-pop { animation: dp-pop 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.animate-dp-rev-up { animation: dp-rev-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.animate-dp-stamp { animation: dp-stamp 0.5s cubic-bezier(0.2, 1.2, 0.3, 1) both; }
+.animate-dp-slide-in { animation: dp-slide-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+.animate-dp-spin { animation: dp-spin 0.8s linear infinite; }
+.animate-dp-blink { animation: dp-blink 1.2s infinite; }
+.animate-dp-pulse { animation: dp-pulse 2s infinite; }

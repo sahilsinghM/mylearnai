@@ -1,4 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { buildCloseSessionPrompt, extractJsonFromResponse, TUTOR_MODEL } from "@/lib/anthropic/prompts";
 import { getWeekContext } from "@/lib/tutor/context";
@@ -79,6 +80,22 @@ export async function POST(request: NextRequest) {
       console.error("Session result schema mismatch:", validated.error, "Raw:", rawResponse);
       return NextResponse.json({ error: "Session summary failed" }, { status: 500 });
     }
+
+    const { gaps, projectAssignment } = validated.data;
+
+    const { error: dbErr } = await supabase.from("tutor_sessions").insert({
+      user_id: user.id,
+      week_topic: context.weekTopic,
+      gaps,
+      project_title: projectAssignment.title,
+      project_desc: projectAssignment.description,
+      acceptance_criteria: projectAssignment.acceptance_criteria,
+    });
+    if (dbErr) {
+      console.error("Session save failed:", dbErr);
+      return NextResponse.json({ error: "Session save failed — please try again" }, { status: 500 });
+    }
+    revalidatePath("/proof");
 
     return NextResponse.json(validated.data);
   } catch (err) {

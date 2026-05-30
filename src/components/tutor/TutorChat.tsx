@@ -1,31 +1,215 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
+import { Zap, Send, Flag, Check, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
 import type { Message, TutorSessionResult } from "@/types/tutor";
+
+interface Gap {
+  concept: string;
+  severity: "low" | "med" | "high";
+  evidence: string;
+}
 
 interface Props {
   weekTopic: string;
   weekNumber: number;
 }
 
+// ---------- Gap rail ----------
+function GapRail({ gaps }: { gaps: Gap[] }) {
+  return (
+    <div className="w-[300px] shrink-0 border-l border-[--border] bg-[--card] flex flex-col min-h-0 hidden lg:flex">
+      <div className="px-6 pt-4 pb-3 border-b border-[--border]">
+        <div className="flex items-center gap-2 text-[13px] font-semibold whitespace-nowrap">
+          <span className="w-[7px] h-[7px] rounded-full bg-[--emerald] shrink-0 animate-dp-pulse" />
+          Gap radar
+        </div>
+        <p className="text-[11.5px] text-[--muted-foreground] mt-[5px] leading-[1.45]">
+          Concepts that wobbled this session. These become the proof at the end.
+        </p>
+      </div>
+      <div className="flex-1 overflow-y-auto px-6 pt-[14px] pb-4 flex flex-col gap-[10px]">
+        {gaps.length === 0 ? (
+          <div className="text-[--muted-foreground] text-[12.5px] leading-[1.5] text-center pt-7">
+            <div className="text-[oklch(0.32_0_0)] text-[30px] mb-2">◎</div>
+            Nothing flagged yet.<br />Answer cleanly and it stays empty.
+          </div>
+        ) : (
+          gaps.map((g, i) => (
+            <div key={i} className="border border-[--border] rounded-[10px] p-[11px_12px] bg-[--card-2] animate-dp-pop">
+              <div className="flex items-center gap-2">
+                <span className={`font-mono text-[9.5px] tracking-[0.06em] uppercase font-semibold px-[6px] py-[2px] rounded-[5px]
+                  ${g.severity === "high" ? "text-destructive bg-[color-mix(in_oklab,var(--destructive)_16%,transparent)]"
+                  : g.severity === "med" ? "text-[--amber] bg-[color-mix(in_oklab,var(--amber)_16%,transparent)]"
+                  : "text-[--muted-foreground] bg-[--muted]"}`}>
+                  {g.severity}
+                </span>
+                <span className="text-[13px] font-medium">{g.concept}</span>
+              </div>
+              <p className="text-[11.5px] text-[--muted-foreground] mt-[6px] leading-[1.45] pl-[9px] border-l-2 border-[--border]">
+                {g.evidence}
+              </p>
+            </div>
+          ))
+        )}
+      </div>
+    </div>
+  );
+}
+
+// ---------- Analyzing overlay ----------
+function AnalyzingOverlay({ step }: { step: string }) {
+  return (
+    <div className="absolute inset-0 flex items-center justify-center z-30" style={{ background: "color-mix(in oklab, var(--background) 80%, transparent)", backdropFilter: "blur(6px)" }}>
+      <div className="text-center">
+        <div className="w-[54px] h-[54px] rounded-full border-2 border-[--border] border-t-primary mx-auto mb-4 animate-dp-spin" />
+        <div className="text-[14px] font-semibold">Analysing your session</div>
+        <div className="text-[12px] text-[--muted-foreground] mt-[6px] font-mono min-h-4">{step}</div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Checklist ----------
+function Checklist({ items }: { items: string[] }) {
+  const [done, setDone] = useState<Record<number, boolean>>({});
+  return (
+    <div className="px-[22px] pb-[22px] pt-2 flex flex-col gap-0.5">
+      {items.map((item, i) => (
+        <div
+          key={i}
+          onClick={() => setDone((d) => ({ ...d, [i]: !d[i] }))}
+          className={`flex gap-3 items-start py-[11px] border-b border-[--border] last:border-0 cursor-pointer group`}
+        >
+          <div className={`w-5 h-5 rounded-[6px] border-[1.5px] shrink-0 mt-0.5 flex items-center justify-center transition-all duration-150
+            ${done[i] ? "bg-[--emerald] border-[--emerald] text-[--background]" : "bg-[--background] border-[--border] text-transparent"}`}>
+            <Check size={13} strokeWidth={3} />
+          </div>
+          <span className={`text-[13px] leading-[1.55] ${done[i] ? "text-[--muted-foreground] line-through" : ""}`}>{item}</span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// ---------- Proof reveal ----------
+function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
+  result: TutorSessionResult; weekTopic: string; weekNumber: number; onRestart: () => void;
+}) {
+  const { gaps, projectAssignment } = result;
+  const hadGaps = gaps.length > 0;
+  const criteria = [projectAssignment.acceptance_criteria[0] ?? projectAssignment.title, ...projectAssignment.acceptance_criteria.slice(1)];
+
+  return (
+    <div className="absolute inset-0 overflow-y-auto bg-[--background] z-20 animate-dp-rev-up">
+      <div className="max-w-[720px] mx-auto px-6 pt-14 pb-20">
+        {/* Seal row */}
+        <div className="flex items-center gap-[13px] mb-[26px]">
+          <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
+            style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 45%, transparent)" }}>
+            <ShieldCheck size={24} />
+          </div>
+          <div>
+            <div className="font-mono text-[11px] tracking-[0.14em] uppercase text-primary">Session complete</div>
+            <div className="text-[13px] text-[--muted-foreground] font-medium mt-0.5 whitespace-nowrap">
+              Week {weekNumber} · {weekTopic}
+            </div>
+          </div>
+        </div>
+
+        {/* Lede */}
+        <p className="text-[19px] leading-[1.5] font-medium mb-2" style={{ letterSpacing: "-0.01em" }}>
+          {hadGaps ? (
+            <>You can <span className="text-primary">talk</span> about {weekTopic.toLowerCase()}. Here&apos;s the build that turns the wobble into proof.</>
+          ) : (
+            <>Clean session. Here&apos;s the build that keeps it honest under your own hands.</>
+          )}
+        </p>
+
+        {/* Project card */}
+        <div className="border border-[--border] rounded-[14px] bg-[--card] overflow-hidden mt-[22px]">
+          <div className="px-[22px] py-5 border-b border-[--border]" style={{ background: "linear-gradient(180deg, var(--card-2), var(--card))" }}>
+            <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">Your proof project</div>
+            <div className="text-[19px] font-[650] mt-[7px] mb-2" style={{ letterSpacing: "-0.01em" }}>{projectAssignment.title}</div>
+            <p className="text-[13.5px] text-[--muted-foreground] leading-[1.6] m-0">{projectAssignment.description}</p>
+          </div>
+
+          {hadGaps && (
+            <>
+              <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground] px-[22px] pt-[18px]">
+                Where it wobbled → how you&apos;ll prove it
+              </div>
+              <div className="px-[22px] pt-[10px] pb-1 flex flex-col gap-[10px]">
+                {gaps.slice(0, 2).map((g, i) => (
+                  <div key={i} className="grid items-center gap-3 animate-dp-rise" style={{ gridTemplateColumns: "1fr auto 1.3fr", animationDelay: `${0.08 * i}s` }}>
+                    <div className="flex flex-col gap-1">
+                      <span className={`self-start font-mono text-[9.5px] tracking-[0.06em] uppercase font-semibold px-[6px] py-[2px] rounded-[5px]
+                        ${g.severity === "high" ? "text-destructive bg-[color-mix(in_oklab,var(--destructive)_16%,transparent)]"
+                        : g.severity === "med" ? "text-[--amber] bg-[color-mix(in_oklab,var(--amber)_16%,transparent)]"
+                        : "text-[--muted-foreground] bg-[--muted]"}`}>
+                        {g.severity}
+                      </span>
+                      <span className="text-[13px] font-medium">{g.concept}</span>
+                    </div>
+                    <ArrowRight size={16} className="text-[--muted-foreground]" />
+                    <div className="text-[12.5px] leading-[1.5] pl-[11px] border-l-2 border-primary">
+                      {projectAssignment.acceptance_criteria[i] ?? g.evidence}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground] px-[22px] pt-[18px]">
+            Acceptance criteria — unchecked until proven
+          </div>
+          <Checklist items={criteria} />
+        </div>
+
+        {/* Actions */}
+        <div className="flex gap-3 mt-[26px] items-center">
+          <Link
+            href="/proof"
+            className="inline-flex items-center gap-2 bg-primary text-primary-foreground border-0 rounded-[9px] px-[18px] py-[11px] text-[14px] font-semibold whitespace-nowrap hover:brightness-110 transition-[filter]"
+          >
+            Start building <ArrowRight size={16} />
+          </Link>
+          <button
+            onClick={onRestart}
+            className="bg-transparent border-0 text-[--muted-foreground] text-[13.5px] font-medium px-[6px] py-[11px] whitespace-nowrap hover:text-foreground"
+          >
+            Run another session
+          </button>
+          <span className="ml-auto text-[11.5px] text-[--muted-foreground] font-mono whitespace-nowrap">Proof &gt; praise</span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------- Main TutorChat ----------
 export function TutorChat({ weekTopic, weekNumber }: Props) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [isEnding, setIsEnding] = useState(false);
+  const [phase, setPhase] = useState<"chatting" | "analyzing" | "revealed">("chatting");
+  const [analyzeStep, setAnalyzeStep] = useState("");
   const [result, setResult] = useState<TutorSessionResult | null>(null);
+  const [gaps, setGaps] = useState<Gap[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const bottomRef = useRef<HTMLDivElement>(null);
-  const didBootstrap = useRef(false);
-  // Only fully-completed turns — used for API calls to avoid sending partial state
+  const threadRef = useRef<HTMLDivElement>(null);
   const cleanHistory = useRef<Message[]>([]);
+  const didBootstrap = useRef(false);
 
-  useEffect(() => {
-    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+  const scrollDown = useCallback(() => {
+    const el = threadRef.current;
+    if (el) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  }, []);
 
-  // Ask the mentor to open the session with their first question
+  useEffect(() => { scrollDown(); }, [messages, isSending, phase, scrollDown]);
+
   useEffect(() => {
     if (didBootstrap.current) return;
     didBootstrap.current = true;
@@ -36,7 +220,6 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   async function streamAssistant(history: Message[]) {
     setIsSending(true);
     setError(null);
-
     const assistantMessage: Message = { role: "assistant", content: "" };
     setMessages([...history, assistantMessage]);
 
@@ -46,7 +229,6 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationHistory: history }),
       });
-
       if (!res.ok || !res.body) throw new Error("Stream failed");
 
       const reader = res.body.getReader();
@@ -63,20 +245,15 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         for (const line of lines) {
           if (!line.startsWith("data: ")) continue;
           const chunk = line.slice(6);
-          // Check for JSON error sentinel. SyntaxError means it's a normal text chunk.
           try {
             const evt = JSON.parse(chunk);
             if (evt?.error === true) {
-              const msg = evt.code === "rate_limited"
-                ? "Rate limit reached — try again in an hour"
-                : evt.code === "no_active_plan"
-                ? "No active plan found — generate your plan first"
+              const msg = evt.code === "rate_limited" ? "Rate limit reached — try again in an hour"
+                : evt.code === "no_active_plan" ? "No active plan found — generate your plan first"
                 : "Session interrupted — try again";
               throw new Error(msg);
             }
-          } catch (e) {
-            if (!(e instanceof SyntaxError)) throw e;
-          }
+          } catch (e) { if (!(e instanceof SyntaxError)) throw e; }
           accumulated += chunk.replace(/\\n/g, "\n");
           setMessages((prev) => {
             const updated = [...prev];
@@ -87,14 +264,11 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       }
 
       if (!accumulated) throw new Error("Empty response from mentor");
-
-      // Commit completed assistant turn to clean history — outside setState to avoid StrictMode double-invoke
       const completedMsg: Message = { role: "assistant", content: accumulated };
       cleanHistory.current = [...cleanHistory.current, completedMsg];
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
-      // Remove the incomplete assistant bubble; clean history is unaffected
       setMessages((prev) => prev.slice(0, -1));
     } finally {
       setIsSending(false);
@@ -103,8 +277,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
   async function sendMessage() {
     const text = input.trim();
-    if (!text || isSending || isEnding || result) return;
-
+    if (!text || isSending || phase !== "chatting") return;
     const userMessage: Message = { role: "user", content: text };
     const nextClean = [...cleanHistory.current, userMessage];
     cleanHistory.current = nextClean;
@@ -114,16 +287,16 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   }
 
   async function endSession() {
-    if (isEnding || isSending || result) return;
-
+    if (isSending || phase !== "chatting") return;
     const userTurns = cleanHistory.current.filter((m) => m.role === "user");
-    if (userTurns.length < 1) {
-      setError("Have at least one exchange before ending the session.");
-      return;
-    }
+    if (userTurns.length < 1) { setError("Have at least one exchange before ending."); return; }
 
-    setIsEnding(true);
-    setError(null);
+    setPhase("analyzing");
+    const analyzeSteps = ["Re-reading the transcript…", "Locating the gaps…", "Compiling the proof…"];
+    for (const step of analyzeSteps) {
+      setAnalyzeStep(step);
+      await new Promise((r) => setTimeout(r, 620));
+    }
 
     try {
       const res = await fetch("/api/tutor/close-session", {
@@ -131,133 +304,121 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ conversationHistory: cleanHistory.current }),
       });
-
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't generate your project — try again");
+
+      if (data.gaps) setGaps(data.gaps);
       setResult(data);
+      setPhase("revealed");
     } catch (err) {
+      setPhase("chatting");
       setError(err instanceof Error ? err.message : "Couldn't generate your project — try again");
-    } finally {
-      setIsEnding(false);
     }
   }
 
-  const sessionDone = !!result;
+  function restart() {
+    setMessages([]); setGaps([]); setInput(""); setResult(null); setError(null);
+    setPhase("chatting"); cleanHistory.current = []; didBootstrap.current = false;
+    setTimeout(() => { didBootstrap.current = true; streamAssistant([]); }, 60);
+  }
+
+  const canEnd = messages.some((m) => m.role === "user") && phase === "chatting" && !isSending;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-57px)]">
-      {/* Message thread */}
-      <div className="flex-1 overflow-y-auto p-6 space-y-4">
-        {messages.map((m, i) => (
-          <div key={`${m.role}-${i}`} className={`flex ${m.role === "user" ? "justify-end" : "justify-start"}`}>
-            <div
-              className={`max-w-[75%] rounded-lg px-4 py-2.5 text-sm whitespace-pre-wrap break-words ${
-                m.role === "user"
-                  ? "bg-primary text-primary-foreground"
-                  : "bg-muted text-foreground"
-              }`}
-            >
-              {m.content || (isSending && i === messages.length - 1 ? "▋" : "")}
-            </div>
-          </div>
-        ))}
+    <div className="flex flex-1 min-h-0 relative">
+      {/* Chat column */}
+      <div className="flex flex-1 flex-col min-w-0">
+        {/* Week banner */}
+        <div className="flex items-center gap-2 px-6 py-[9px] text-primary text-[12px] border-b"
+          style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
+          <Zap size={13} />
+          <span><b>Week {weekNumber} — {weekTopic}.</b> No formulas first. I want to hear how you actually think about it.</span>
+        </div>
 
-        {/* Project assignment card */}
-        {result && (
-          <div className="border border-border rounded-lg p-5 space-y-3 bg-card mt-4">
-            <div className="space-y-1">
-              <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Your project</p>
-              <h2 className="text-base font-semibold">{result.projectAssignment.title}</h2>
-              <p className="text-sm text-muted-foreground">{result.projectAssignment.description}</p>
-            </div>
-            {result.projectAssignment.acceptance_criteria.length > 0 && (
-              <div className="border-t border-border pt-3 space-y-1.5">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Proof criteria</p>
-                {result.projectAssignment.acceptance_criteria.map((c, i) => (
-                  <p key={i} className="text-sm flex gap-2">
-                    <span className="text-muted-foreground shrink-0">{i + 1}.</span>
-                    {c}
-                  </p>
-                ))}
-              </div>
-            )}
-            {result.gaps.length > 0 && (
-              <div className="space-y-1 border-t border-border pt-3">
-                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Gaps identified</p>
-                {result.gaps.map((g, i) => (
-                  <div key={i} className="flex items-start gap-2 text-sm">
-                    <span className={`mt-0.5 shrink-0 text-xs font-medium px-1.5 py-0.5 rounded ${
-                      g.severity === "high" ? "bg-destructive/10 text-destructive" :
-                      g.severity === "med" ? "bg-orange-100 text-orange-700" :
-                      "bg-muted text-muted-foreground"
-                    }`}>{g.severity}</span>
-                    <span>{g.concept}</span>
+        {/* Thread */}
+        <div ref={threadRef} className="flex-1 overflow-y-auto p-6">
+          <div className="max-w-[760px] w-full mx-auto flex flex-col gap-[14px]">
+            {messages.map((m, i) => (
+              <div key={`${m.role}-${i}`} className={`flex animate-dp-rise ${m.role === "user" ? "justify-end" : ""}`}>
+                {m.role === "assistant" ? (
+                  <div className="max-w-[80%]">
+                    <div className="font-mono text-[10px] tracking-[0.08em] uppercase text-[--muted-foreground] mb-1">Mentor</div>
+                    <div className="rounded-[12px] rounded-bl-[4px] px-[15px] py-[11px] text-[14px] leading-[1.55] whitespace-pre-wrap break-words bg-[--muted] border border-[--border]">
+                      {m.content || (isSending && i === messages.length - 1 ? (
+                        <span className="inline-flex gap-1 items-center py-0.5">
+                          {[0, 1, 2].map((k) => (
+                            <span key={k} className="w-[6px] h-[6px] rounded-full bg-[--muted-foreground] opacity-50 animate-dp-blink"
+                              style={{ animationDelay: `${k * 0.2}s` }} />
+                          ))}
+                        </span>
+                      ) : "")}
+                    </div>
                   </div>
-                ))}
+                ) : (
+                  <div className="max-w-[80%] rounded-[12px] rounded-br-[4px] px-[15px] py-[11px] text-[14px] leading-[1.55] whitespace-pre-wrap break-words bg-primary text-primary-foreground">
+                    {m.content}
+                  </div>
+                )}
               </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Error */}
+        {error && (
+          <div className="px-6 pb-2 flex items-center gap-3 max-w-[760px] mx-auto w-full">
+            <p className="text-sm text-destructive flex-1">{error}</p>
+            {phase === "chatting" && !isSending && cleanHistory.current.length > 0 && (
+              <button onClick={() => streamAssistant(cleanHistory.current)} className="text-xs text-[--muted-foreground] underline underline-offset-2 shrink-0 flex items-center gap-1">
+                <RefreshCw size={11} /> retry
+              </button>
             )}
-            <div className="border-t border-border pt-3 flex gap-3">
-              <Link
-                href="/plan"
-                className="text-sm text-primary underline underline-offset-2"
-              >
-                Back to plan
-              </Link>
-              <Link
-                href="/dashboard"
-                className="text-sm text-muted-foreground hover:text-foreground"
-              >
-                Dashboard
-              </Link>
-            </div>
           </div>
         )}
 
-        <div ref={bottomRef} />
+        {/* Composer */}
+        {phase === "chatting" && (
+          <div className="border-t border-[--border] px-6 py-[14px]">
+            <div className="max-w-[760px] mx-auto flex flex-col gap-[10px]">
+              <div className="flex gap-[9px] items-center">
+                <input
+                  type="text"
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                  disabled={isSending}
+                  placeholder="…or type your own answer"
+                  className="flex-1 bg-[--background] border border-[--input] text-foreground rounded-[8px] px-[13px] py-[9px] text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-[--muted-foreground] focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)] disabled:opacity-50"
+                />
+                <button
+                  onClick={sendMessage}
+                  disabled={!input.trim() || isSending}
+                  className="inline-flex items-center justify-center gap-[7px] bg-primary text-primary-foreground border-0 rounded-[8px] px-[15px] py-[9px] text-[14px] font-medium transition-[filter,opacity] hover:brightness-110 disabled:opacity-45"
+                >
+                  <Send size={15} />Send
+                </button>
+                <button
+                  onClick={endSession}
+                  disabled={!canEnd}
+                  className="bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
+                >
+                  <Flag size={14} />I think I get it
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* Error + retry */}
-      {error && (
-        <div className="px-6 pb-2 flex items-center gap-3">
-          <p className="text-sm text-destructive flex-1">{error}</p>
-          {!sessionDone && !isSending && cleanHistory.current.length > 0 && (
-            <button
-              onClick={() => streamAssistant(cleanHistory.current)}
-              className="text-xs text-muted-foreground underline underline-offset-2 shrink-0"
-            >
-              retry
-            </button>
-          )}
-        </div>
-      )}
+      {/* Gap rail */}
+      {phase !== "revealed" && <GapRail gaps={gaps} />}
 
-      {/* Input area */}
-      {!sessionDone && (
-        <div className="border-t border-border px-6 py-4 flex gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-            disabled={isSending || isEnding}
-            placeholder="Your answer..."
-            className="flex-1 rounded-md border border-input bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-ring disabled:opacity-50"
-          />
-          <button
-            onClick={sendMessage}
-            disabled={!input.trim() || isSending || isEnding}
-            className="px-4 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 hover:bg-primary/90 transition-colors"
-          >
-            Send
-          </button>
-          <button
-            onClick={endSession}
-            disabled={isEnding || isSending}
-            className="px-3 py-2 text-sm text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50"
-          >
-            {isEnding ? "Analyzing..." : "End Session"}
-          </button>
-        </div>
+      {/* Analyzing overlay */}
+      {phase === "analyzing" && <AnalyzingOverlay step={analyzeStep} />}
+
+      {/* Proof reveal */}
+      {phase === "revealed" && result && (
+        <ProofReveal result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={restart} />
       )}
     </div>
   );

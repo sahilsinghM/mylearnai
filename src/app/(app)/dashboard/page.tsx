@@ -4,6 +4,7 @@ import { TodayCard } from "@/components/dashboard/TodayCard";
 import { WeekOverview } from "@/components/dashboard/WeekOverview";
 import { ProjectCard } from "@/components/dashboard/ProjectCard";
 import { StatsBar } from "@/components/dashboard/StatsBar";
+import { WeekCompleteBar } from "@/components/dashboard/WeekCompleteBar";
 import { getToday } from "@/lib/utils";
 import type { LearningPlan, PlanDay, Task, Milestone, Project, ClaudePlanJSON } from "@/types/plan";
 
@@ -145,6 +146,11 @@ export default async function DashboardPage() {
   const todayDayNumber = todayDay?.dayNumber ?? 1;
   const todayHook = todayDay ? dayHooks.get(todayDay.dayNumber) : undefined;
 
+  const terminalStatuses = new Set(["completed", "skipped", "failed"]);
+  const allDaysTerminal = days.length === 7 && days.every((d) => terminalStatuses.has(d.status));
+  const weekExpired = plan ? plan.endsOn < today : false;
+  const weekDone = allDaysTerminal || weekExpired;
+
   return (
     <div>
       <TopBar
@@ -152,6 +158,7 @@ export default async function DashboardPage() {
         subtitle={plan ? `Week ${plan.weekNumber} · ${plan.difficulty} pace` : "Welcome"}
       />
       <div className="p-6 space-y-6 max-w-4xl">
+        {plan && weekDone && <WeekCompleteBar weekNumber={plan.weekNumber} />}
         {plan && <StatsBar plan={plan} />}
 
         {days.length > 0 && (

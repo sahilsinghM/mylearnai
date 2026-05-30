@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Calendar, FolderKanban, BrainCircuit, LogOut } from "lucide-react";
+import { LayoutDashboard, Calendar, FolderKanban, BrainCircuit, Award, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { href: "/plan", label: "Plan", icon: Calendar },
   { href: "/project", label: "Project", icon: FolderKanban },
   { href: "/tutor", label: "Tutor", icon: BrainCircuit },
+  { href: "/proof", label: "Proof Trail", icon: Award },
 ];
 
 export function Sidebar() {
