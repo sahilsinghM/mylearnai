@@ -1,6 +1,6 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { buildTutorSystemPrompt, TUTOR_MODEL, TUTOR_BOOTSTRAP_TURN } from "@/lib/anthropic/prompts";
+import { buildTutorSystemPrompt, extractJsonFromResponse, TUTOR_MODEL, TUTOR_BOOTSTRAP_TURN } from "@/lib/anthropic/prompts";
 import { getWeekContext } from "@/lib/tutor/context";
 import { checkRateLimit } from "@/lib/tutor/rate-limit";
 import { z } from "zod";
@@ -15,82 +15,68 @@ const messageSchema = z.object({
 
 const bodySchema = z.object({
   conversationHistory: z.array(messageSchema).max(50),
+  weekTopic: z.string().max(200).optional(),
+});
+
+const choiceSchema = z.object({ text: z.string() });
+
+const responseSchema = z.object({
+  question: z.string(),
+  choices: z.array(choiceSchema).min(2).max(4),
 });
 
 export async function POST(request: NextRequest) {
-  const encoder = new TextEncoder();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const stream = new ReadableStream({
-    async start(controller) {
-      try {
-        const supabase = await createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          controller.enqueue(encoder.encode("data: unauthorized\n\n"));
-          controller.close();
-          return;
-        }
+  const { allowed } = checkRateLimit(`chat:${user.id}`, 30);
+  if (!allowed) return NextResponse.json({ error: "Rate limited" }, { status: 429 });
 
-        const { allowed } = checkRateLimit(`chat:${user.id}`, 30);
-        if (!allowed) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: true, code: "rate_limited" })}\n\n`));
-          controller.close();
-          return;
-        }
+  const context = await getWeekContext(user.id);
+  if (!context) return NextResponse.json({ error: "No active plan" }, { status: 400 });
 
-        const context = await getWeekContext(user.id);
-        if (!context) {
-          controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: true, code: "no_active_plan" })}\n\n`));
-          controller.close();
-          return;
-        }
+  const body = await request.json();
+  const parse = bodySchema.safeParse(body);
+  if (!parse.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
-        const body = await request.json();
-        const parse = bodySchema.safeParse(body);
-        if (!parse.success) {
-          controller.enqueue(encoder.encode("data: invalid-input\n\n"));
-          controller.close();
-          return;
-        }
+  const { conversationHistory, weekTopic } = parse.data;
+  const topic = weekTopic ?? context.weekTopic;
+  const systemPrompt = buildTutorSystemPrompt(topic, context.weekNumber);
 
-        const { conversationHistory } = parse.data;
-        const systemPrompt = buildTutorSystemPrompt(context.weekTopic, context.weekNumber);
+  const messages = conversationHistory.length === 0
+    ? [{ role: "user" as const, content: TUTOR_BOOTSTRAP_TURN }]
+    : conversationHistory;
 
-        // Bootstrap: if no history, inject a hidden opener prompt so Claude asks first
-        const messages = conversationHistory.length === 0
-          ? [{ role: "user" as const, content: TUTOR_BOOTSTRAP_TURN }]
-          : conversationHistory;
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 15000);
 
-        const claudeStream = anthropic.messages.stream({
-          model: TUTOR_MODEL,
-          max_tokens: 512,
-          system: systemPrompt,
-          messages,
-        });
+  try {
+    const message = await anthropic.messages.create(
+      {
+        model: TUTOR_MODEL,
+        max_tokens: 512,
+        system: systemPrompt,
+        messages,
+      },
+      { signal: controller.signal }
+    );
 
-        for await (const event of claudeStream) {
-          if (
-            event.type === "content_block_delta" &&
-            event.delta.type === "text_delta"
-          ) {
-            controller.enqueue(encoder.encode(`data: ${event.delta.text.replace(/\n/g, "\\n")}\n\n`));
-          }
-        }
+    const raw = message.content[0]?.type === "text" ? message.content[0].text : "";
+    const parsed = JSON.parse(extractJsonFromResponse(raw));
+    const validated = responseSchema.safeParse(parsed);
 
-        controller.close();
-      } catch (err) {
-        console.error("Tutor chat error:", err);
-        controller.enqueue(encoder.encode(`data: ${JSON.stringify({ error: true })}\n\n`));
-        controller.close();
-      }
-    },
-  });
+    if (!validated.success) {
+      console.error("Tutor response schema mismatch:", validated.error, "Raw:", raw);
+      // Fallback: treat the raw text as the question with no choices
+      return NextResponse.json({ question: raw, choices: [] });
+    }
 
-  return new Response(stream, {
-    headers: {
-      "Content-Type": "text/event-stream",
-      "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-    },
-  });
+    return NextResponse.json(validated.data);
+  } catch (err) {
+    console.error("Tutor chat error:", err);
+    return NextResponse.json({ error: "Chat failed" }, { status: 500 });
+  } finally {
+    clearTimeout(timeout);
+  }
 }

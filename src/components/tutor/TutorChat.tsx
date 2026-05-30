@@ -5,6 +5,14 @@ import Link from "next/link";
 import { Zap, Send, Flag, Check, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
 import type { Message, TutorSessionResult } from "@/types/tutor";
 
+interface Choice {
+  text: string;
+}
+
+interface DisplayMessage extends Message {
+  choices?: Choice[];
+}
+
 interface Gap {
   concept: string;
   severity: "low" | "med" | "high";
@@ -80,7 +88,7 @@ function Checklist({ items }: { items: string[] }) {
         <div
           key={i}
           onClick={() => setDone((d) => ({ ...d, [i]: !d[i] }))}
-          className={`flex gap-3 items-start py-[11px] border-b border-[--border] last:border-0 cursor-pointer group`}
+          className="flex gap-3 items-start py-[11px] border-b border-[--border] last:border-0 cursor-pointer"
         >
           <div className={`w-5 h-5 rounded-[6px] border-[1.5px] shrink-0 mt-0.5 flex items-center justify-center transition-all duration-150
             ${done[i] ? "bg-[--emerald] border-[--emerald] text-[--background]" : "bg-[--background] border-[--border] text-transparent"}`}>
@@ -104,7 +112,6 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
   return (
     <div className="absolute inset-0 overflow-y-auto bg-[--background] z-20 animate-dp-rev-up">
       <div className="max-w-[720px] mx-auto px-6 pt-14 pb-20">
-        {/* Seal row */}
         <div className="flex items-center gap-[13px] mb-[26px]">
           <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
             style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 45%, transparent)" }}>
@@ -118,7 +125,6 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
           </div>
         </div>
 
-        {/* Lede */}
         <p className="text-[19px] leading-[1.5] font-medium mb-2" style={{ letterSpacing: "-0.01em" }}>
           {hadGaps ? (
             <>You can <span className="text-primary">talk</span> about {weekTopic.toLowerCase()}. Here&apos;s the build that turns the wobble into proof.</>
@@ -127,7 +133,6 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
           )}
         </p>
 
-        {/* Project card */}
         <div className="border border-[--border] rounded-[14px] bg-[--card] overflow-hidden mt-[22px]">
           <div className="px-[22px] py-5 border-b border-[--border]" style={{ background: "linear-gradient(180deg, var(--card-2), var(--card))" }}>
             <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">Your proof project</div>
@@ -168,7 +173,6 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
           <Checklist items={criteria} />
         </div>
 
-        {/* Actions */}
         <div className="flex gap-3 mt-[26px] items-center">
           <Link
             href="/proof"
@@ -191,7 +195,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
 
 // ---------- Main TutorChat ----------
 export function TutorChat({ weekTopic, weekNumber }: Props) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
   const [phase, setPhase] = useState<"chatting" | "analyzing" | "revealed">("chatting");
@@ -200,6 +204,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   const [gaps, setGaps] = useState<Gap[]>([]);
   const [error, setError] = useState<string | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
+  // clean history only contains {role, content} — no choices — for API calls
   const cleanHistory = useRef<Message[]>([]);
   const didBootstrap = useRef(false);
 
@@ -213,59 +218,37 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   useEffect(() => {
     if (didBootstrap.current) return;
     didBootstrap.current = true;
-    streamAssistant(cleanHistory.current);
+    fetchAssistant(cleanHistory.current);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function streamAssistant(history: Message[]) {
+  async function fetchAssistant(history: Message[]) {
     setIsSending(true);
     setError(null);
-    const assistantMessage: Message = { role: "assistant", content: "" };
-    setMessages([...history, assistantMessage]);
+    // Show typing indicator
+    setMessages((prev) => [...prev, { role: "assistant", content: "" }]);
 
     try {
       const res = await fetch("/api/tutor/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationHistory: history }),
+        body: JSON.stringify({ conversationHistory: history, weekTopic }),
       });
-      if (!res.ok || !res.body) throw new Error("Stream failed");
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let accumulated = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const chunk = line.slice(6);
-          try {
-            const evt = JSON.parse(chunk);
-            if (evt?.error === true) {
-              const msg = evt.code === "rate_limited" ? "Rate limit reached — try again in an hour"
-                : evt.code === "no_active_plan" ? "No active plan found — generate your plan first"
-                : "Session interrupted — try again";
-              throw new Error(msg);
-            }
-          } catch (e) { if (!(e instanceof SyntaxError)) throw e; }
-          accumulated += chunk.replace(/\\n/g, "\n");
-          setMessages((prev) => {
-            const updated = [...prev];
-            updated[updated.length - 1] = { role: "assistant", content: accumulated };
-            return updated;
-          });
-        }
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error ?? "Chat failed");
       }
 
-      if (!accumulated) throw new Error("Empty response from mentor");
-      const completedMsg: Message = { role: "assistant", content: accumulated };
-      cleanHistory.current = [...cleanHistory.current, completedMsg];
+      const { question, choices } = data as { question: string; choices?: Choice[] };
+      const assistantMsg: DisplayMessage = {
+        role: "assistant",
+        content: question,
+        choices: choices?.length ? choices : undefined,
+      };
+
+      cleanHistory.current = [...history, { role: "assistant", content: question }];
+      setMessages((prev) => [...prev.slice(0, -1), assistantMsg]);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
@@ -275,15 +258,20 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
     }
   }
 
-  async function sendMessage() {
-    const text = input.trim();
+  async function sendUserMessage(text: string) {
     if (!text || isSending || phase !== "chatting") return;
     const userMessage: Message = { role: "user", content: text };
     const nextClean = [...cleanHistory.current, userMessage];
     cleanHistory.current = nextClean;
-    setMessages((prev) => [...prev, userMessage]);
+    // Remove choices from last assistant message (answered), add user message
+    setMessages((prev) => {
+      const updated = prev.map((m, i) =>
+        i === prev.length - 1 && m.role === "assistant" ? { ...m, choices: undefined } : m
+      );
+      return [...updated, userMessage];
+    });
     setInput("");
-    await streamAssistant(nextClean);
+    await fetchAssistant(nextClean);
   }
 
   async function endSession() {
@@ -319,10 +307,17 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   function restart() {
     setMessages([]); setGaps([]); setInput(""); setResult(null); setError(null);
     setPhase("chatting"); cleanHistory.current = []; didBootstrap.current = false;
-    setTimeout(() => { didBootstrap.current = true; streamAssistant([]); }, 60);
+    setTimeout(() => { didBootstrap.current = true; fetchAssistant([]); }, 60);
   }
 
   const canEnd = messages.some((m) => m.role === "user") && phase === "chatting" && !isSending;
+
+  // Chips: only on the last assistant message when chatting and not sending
+  const lastMsg = messages[messages.length - 1];
+  const activeChoices =
+    !isSending && phase === "chatting" && lastMsg?.role === "assistant" && lastMsg.choices
+      ? lastMsg.choices
+      : null;
 
   return (
     <div className="flex flex-1 min-h-0 relative">
@@ -369,7 +364,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
           <div className="px-6 pb-2 flex items-center gap-3 max-w-[760px] mx-auto w-full">
             <p className="text-sm text-destructive flex-1">{error}</p>
             {phase === "chatting" && !isSending && cleanHistory.current.length > 0 && (
-              <button onClick={() => streamAssistant(cleanHistory.current)} className="text-xs text-[--muted-foreground] underline underline-offset-2 shrink-0 flex items-center gap-1">
+              <button onClick={() => fetchAssistant(cleanHistory.current)} className="text-xs text-[--muted-foreground] underline underline-offset-2 shrink-0 flex items-center gap-1">
                 <RefreshCw size={11} /> retry
               </button>
             )}
@@ -380,18 +375,42 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         {phase === "chatting" && (
           <div className="border-t border-[--border] px-6 py-[14px]">
             <div className="max-w-[760px] mx-auto flex flex-col gap-[10px]">
+              {/* Answer chips */}
+              {activeChoices && (
+                <div className="flex flex-col gap-2">
+                  <p className="text-[11px] text-[--muted-foreground] font-mono tracking-[0.04em] uppercase">
+                    Pick the answer closest to how you&apos;d put it
+                  </p>
+                  <div className="flex flex-col gap-[7px]">
+                    {activeChoices.map((c, i) => (
+                      <button
+                        key={i}
+                        onClick={() => sendUserMessage(c.text)}
+                        className="w-full text-left flex items-start gap-[10px] px-[13px] py-[10px] rounded-[9px] border border-[--border] bg-[--card] text-[13.5px] leading-[1.5] text-foreground transition-colors hover:border-primary hover:bg-[color-mix(in_oklab,var(--primary)_5%,transparent)] active:scale-[0.99]"
+                      >
+                        <span className="font-mono text-[11px] font-semibold tracking-[0.06em] text-[--muted-foreground] shrink-0 mt-[2px] w-[16px]">
+                          {String.fromCharCode(65 + i)}
+                        </span>
+                        <span>{c.text}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Text input row */}
               <div className="flex gap-[9px] items-center">
                 <input
                   type="text"
                   value={input}
                   onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendUserMessage(input.trim()); } }}
                   disabled={isSending}
-                  placeholder="…or type your own answer"
+                  placeholder={activeChoices ? "…or type your own answer" : "Type your answer…"}
                   className="flex-1 bg-[--background] border border-[--input] text-foreground rounded-[8px] px-[13px] py-[9px] text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-[--muted-foreground] focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)] disabled:opacity-50"
                 />
                 <button
-                  onClick={sendMessage}
+                  onClick={() => sendUserMessage(input.trim())}
                   disabled={!input.trim() || isSending}
                   className="inline-flex items-center justify-center gap-[7px] bg-primary text-primary-foreground border-0 rounded-[8px] px-[15px] py-[9px] text-[14px] font-medium transition-[filter,opacity] hover:brightness-110 disabled:opacity-45"
                 >
