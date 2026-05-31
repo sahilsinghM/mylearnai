@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useMemo } from "react";
 import type { MasterNode, MasterEdge, Phase } from "@/lib/roadmap/types";
 
 const NODE_W = 210;
@@ -56,13 +56,14 @@ export function RoadmapCanvas({
   canvasHeight,
   onNodeClick,
 }: RoadmapCanvasProps) {
-  const nodesWithPos: NodeWithPos[] = nodes.map((n) => ({
-    ...n,
-    x: nodeX(n.phase),
-    y: nodeY(n.row),
-  }));
-
-  const nodeMap = new Map<string, NodeWithPos>(nodesWithPos.map((n) => [n.id, n]));
+  const nodesWithPos = useMemo(() =>
+    nodes.map((n) => ({ ...n, x: nodeX(n.phase), y: nodeY(n.row) })),
+    [nodes]
+  );
+  const nodeMap = useMemo(() =>
+    new Map(nodesWithPos.map((n) => [n.id, n])),
+    [nodesWithPos]
+  );
 
   const transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
 

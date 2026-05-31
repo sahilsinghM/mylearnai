@@ -24,8 +24,8 @@ export function RoadmapPage({ data }: Props) {
   const { phases, nodes, edges } = data;
 
   // Compute canvas dimensions
-  const maxPhase = Math.max(...nodes.map((n) => n.phase), 1);
-  const maxRow = Math.max(...nodes.map((n) => n.row), 0);
+  const maxPhase = nodes.reduce((m, n) => Math.max(m, n.phase), 1);
+  const maxRow = nodes.reduce((m, n) => Math.max(m, n.row), 0);
   const canvasWidth = LEFT_PAD + maxPhase * COL_W + 40;
   const canvasHeight = TOP_PAD + (maxRow + 1) * ROW_H + 40;
 
@@ -41,6 +41,8 @@ export function RoadmapPage({ data }: Props) {
   const [bannerOpen, setBannerOpen] = useState(true);
 
   const stageRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef(view);
+  useEffect(() => { viewRef.current = view; }, [view]);
 
   const fit = useCallback(() => {
     const stage = stageRef.current;
@@ -70,8 +72,8 @@ export function RoadmapPage({ data }: Props) {
     const target = e.target as HTMLElement;
     if (target.closest(".mr-node") || target.closest(".mr-controls") || target.closest(".mr-legend") || target.closest(".mr-banner")) return;
     setDragging(true);
-    dragStart.current = { mx: e.clientX, my: e.clientY, vx: view.x, vy: view.y };
-  }, [view.x, view.y]);
+    dragStart.current = { mx: e.clientX, my: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+  }, []);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragging || !dragStart.current) return;
