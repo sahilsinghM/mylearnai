@@ -1,0 +1,517 @@
+/* ── Master Roadmap page styles ── */
+
+.mr-topnav {
+  height: 50px;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.mr-topnav a,
+.mr-topnav button {
+  white-space: nowrap;
+}
+
+.mr-nav-logo {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  text-decoration: none;
+  color: var(--foreground);
+  font-family: var(--font-geist-mono);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.mr-logo-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: oklch(0.55 0.2 264);
+  flex-shrink: 0;
+}
+
+.mr-nav-link {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  padding: 6px 10px;
+  border-radius: 6px;
+  text-decoration: none;
+  transition: background 0.14s;
+}
+
+.mr-nav-link:hover {
+  background: var(--accent);
+}
+
+.mr-nav-spacer {
+  flex: 1;
+}
+
+.mr-signin-link {
+  font-size: 13px;
+  color: var(--muted-foreground);
+  text-decoration: none;
+  padding: 6px 10px;
+}
+
+.mr-signin-link:hover {
+  color: var(--foreground);
+}
+
+.mr-cta-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 8px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.14s;
+}
+
+.mr-cta-btn:hover {
+  opacity: 0.88;
+}
+
+/* ── Hero ── */
+
+.mr-hero {
+  padding: 12px 20px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: nowrap;
+  flex-shrink: 0;
+}
+
+.mr-hero-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.mr-eyebrow {
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  color: var(--primary);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.mr-hero-title {
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.mr-hero-title .highlight {
+  color: var(--primary);
+}
+
+.mr-hero-stats {
+  display: flex;
+  flex-direction: row;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+.mr-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+}
+
+.mr-stat-num {
+  font-family: var(--font-geist-mono);
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--foreground);
+  line-height: 1;
+}
+
+.mr-stat-label {
+  font-family: var(--font-geist-mono);
+  font-size: 9.5px;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+/* ── Toolbar ── */
+
+.mr-toolbar {
+  height: 40px;
+  padding: 8px 20px;
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
+  flex-shrink: 0;
+}
+
+/* ── Stage ── */
+
+.mr-stage {
+  flex: 1;
+  position: relative;
+  overflow: hidden;
+  min-height: 0;
+  background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--primary) 3%, transparent), var(--background));
+}
+
+.mr-stage[data-dragging="true"] {
+  cursor: grabbing;
+}
+
+.mr-stage:not([data-dragging="true"]) {
+  cursor: grab;
+}
+
+/* ── Grid backdrop ── */
+
+.mr-grid {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.35;
+  background-image:
+    linear-gradient(color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in oklab, var(--border) 60%, transparent) 1px, transparent 1px);
+  background-size: 32px 32px;
+  z-index: 0;
+}
+
+/* ── Canvas ── */
+
+.mr-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 0 0;
+}
+
+/* ── Phase columns ── */
+
+.mr-phase-col {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.col-tint {
+  position: absolute;
+  left: 12px;
+  right: 12px;
+  top: 56px;
+  bottom: 0;
+  border-radius: 16px;
+}
+
+.mr-phase-head {
+  position: absolute;
+  top: 12px;
+  left: 16px;
+  right: 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.phase-n {
+  font-family: var(--font-geist-mono);
+  font-size: 10.5px;
+  color: var(--muted-foreground);
+}
+
+.phase-name {
+  font-family: var(--font-geist-mono);
+  font-size: 10.5px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
+/* ── Node cards ── */
+
+.mr-node {
+  position: absolute;
+  width: 210px;
+  min-height: 86px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 11px 13px 12px;
+  cursor: pointer;
+  user-select: none;
+  transition: border-color 0.16s, background 0.16s, transform 0.16s, box-shadow 0.16s;
+  box-shadow: 0 1px 0 color-mix(in oklab, var(--border) 50%, transparent);
+}
+
+.mr-node:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in oklab, var(--phase) 60%, var(--border));
+  background: color-mix(in oklab, var(--phase) 5%, var(--card));
+}
+
+.node-head {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 5px;
+}
+
+.node-phase-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--phase);
+  flex-shrink: 0;
+}
+
+.node-phase-label {
+  font-family: var(--font-geist-mono);
+  font-size: 9.5px;
+  color: var(--phase);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.node-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  line-height: 1.28;
+  color: var(--foreground);
+  margin: 0;
+}
+
+.node-foot {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 8px;
+}
+
+.depth-bar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 2px;
+}
+
+.depth-bar-segment {
+  width: 9px;
+  height: 4px;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--phase) 60%, var(--border));
+}
+
+.node-hours {
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+
+/* ── SVG edges ── */
+
+.mr-edges {
+  position: absolute;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  overflow: visible;
+}
+
+/* ── Zoom controls ── */
+
+.mr-controls {
+  position: absolute;
+  right: 18px;
+  bottom: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  z-index: 10;
+}
+
+.mr-zoom-pct {
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  color: var(--muted-foreground);
+}
+
+.mr-btn-group {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px color-mix(in oklab, #000 30%, transparent);
+}
+
+.mr-zoom-btn {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  transition: background 0.12s, color 0.12s;
+}
+
+.mr-zoom-btn:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
+
+.mr-zoom-btn + .mr-zoom-btn {
+  border-top: 1px solid var(--border);
+}
+
+/* ── Legend ── */
+
+.mr-legend {
+  position: absolute;
+  left: 18px;
+  bottom: 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 9px 12px;
+  display: flex;
+  flex-direction: row;
+  gap: 14px;
+  align-items: center;
+  z-index: 10;
+}
+
+.mr-legend-item {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 5px;
+  font-family: var(--font-geist-mono);
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--muted-foreground);
+  letter-spacing: 0.06em;
+}
+
+.legend-line {
+  width: 18px;
+  height: 0;
+  border-top: 1.5px solid var(--border);
+}
+
+.legend-line-dashed {
+  width: 18px;
+  height: 0;
+  border-top: 1.5px dashed var(--border);
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+/* ── Banner ── */
+
+.mr-banner {
+  position: absolute;
+  left: 50%;
+  bottom: 18px;
+  transform: translateX(-50%);
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border));
+  box-shadow: 0 4px 16px color-mix(in oklab, #000 30%, transparent);
+  padding: 8px 8px 8px 16px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 14px;
+  max-width: 540px;
+  font-size: 12.5px;
+  color: var(--foreground);
+  white-space: nowrap;
+  z-index: 10;
+}
+
+.mr-banner-eyebrow {
+  font-family: var(--font-geist-mono);
+  font-size: 9.5px;
+  color: var(--primary);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 2px;
+}
+
+.mr-banner-content {
+  display: flex;
+  flex-direction: column;
+}
+
+.mr-banner-primary-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: none;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.14s;
+  white-space: nowrap;
+}
+
+.mr-banner-primary-btn:hover {
+  opacity: 0.88;
+}
+
+.mr-banner-close-btn {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--muted-foreground);
+  border-radius: 50%;
+  transition: background 0.12s;
+  flex-shrink: 0;
+}
+
+.mr-banner-close-btn:hover {
+  background: var(--accent);
+  color: var(--foreground);
+}
