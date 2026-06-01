@@ -38,46 +38,59 @@ export default async function LandingPage() {
         </nav>
       </header>
 
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-16">
-        <div className="max-w-2xl w-full space-y-8">
-          <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border text-xs text-muted-foreground">
-              Adaptive AI learning for engineers
-            </div>
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl">
-              Stop drifting.<br />
-              <span className="text-primary">Know what to learn next.</span>
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-lg">
-              DeepPath builds a personalized 7-day AI learning plan, adapts based on your progress, and turns it into shipped projects.
-            </p>
+      <main className="flex-1 flex flex-col">
+        {/* Hero */}
+        <section className="flex flex-col items-center text-center px-4 pt-16 pb-10 space-y-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-border text-xs text-muted-foreground">
+            Adaptive AI learning for engineers
           </div>
-
-          <div className="flex flex-col sm:flex-row gap-3">
+          <h1 className="text-4xl font-bold tracking-tight sm:text-5xl max-w-2xl">
+            Stop drifting.<br />
+            <span className="text-primary">Know what to learn next.</span>
+          </h1>
+          <p className="text-lg text-muted-foreground max-w-xl">
+            DeepPath builds a personalized 7-day AI learning plan, adapts based on your progress, and turns it into shipped projects.
+          </p>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Button asChild size="lg">
               <Link href="/sign-up">Get started — it&apos;s free</Link>
             </Button>
             <Button asChild variant="outline" size="lg">
-              <Link href="/roadmap">See the roadmap</Link>
+              <Link href="/roadmap">Explore the roadmap</Link>
             </Button>
           </div>
+        </section>
 
-          <div className="space-y-3 pt-2">
-            {[
-              { label: "Adaptive planning", desc: "7-day plan that updates based on what actually happened" },
-              { label: "Project-first", desc: "Every week ends in a shipped artifact, not passive notes" },
-              { label: "Foundations first", desc: "Vectors and embeddings before agents and hype" },
-            ].map((item) => (
-              <div key={item.label} className="flex items-baseline gap-3">
-                <span className="w-1.5 h-1.5 rounded-full bg-primary mt-1.5 flex-shrink-0" />
-                <div>
-                  <span className="text-sm font-medium">{item.label}</span>
-                  <span className="text-sm text-muted-foreground"> — {item.desc}</span>
-                </div>
-              </div>
-            ))}
+        {/* Roadmap preview */}
+        <section className="flex-1 flex flex-col items-center px-4 pb-12 gap-4">
+          <p className="text-xs text-muted-foreground tracking-wide uppercase">
+            33 nodes · 7 phases · explore before you commit
+          </p>
+          <Link
+            href="/roadmap"
+            className="relative w-full max-w-5xl rounded-xl overflow-hidden border border-border shadow-2xl group"
+            style={{ aspectRatio: "16/9" }}
+            aria-label="Explore the AI engineering roadmap"
+          >
+            <iframe
+              src="/roadmap"
+              className="w-full h-full pointer-events-none"
+              tabIndex={-1}
+              aria-hidden="true"
+            />
+            {/* Clickable overlay with hover CTA */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+              <span className="text-sm font-medium text-white px-4 py-2 rounded-full bg-primary/90">
+                Explore the full roadmap →
+              </span>
+            </div>
+          </Link>
+          <div className="flex gap-6 text-xs text-muted-foreground">
+            <span>— Adaptive planning</span>
+            <span>— Project-first</span>
+            <span>— Foundations first</span>
           </div>
-        </div>
+        </section>
       </main>
     </div>
   );
