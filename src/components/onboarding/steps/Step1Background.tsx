@@ -1,7 +1,6 @@
 "use client";
 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
 import type { ProgrammingLevel } from "@/types/onboarding";
 
 const options: { value: ProgrammingLevel; label: string; desc: string }[] = [

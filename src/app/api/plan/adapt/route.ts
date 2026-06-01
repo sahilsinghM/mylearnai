@@ -1,10 +1,11 @@
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse } from "next/server";
 import { createClient, createAdminClient } from "@/lib/supabase/server";
 import { generatePlan } from "@/lib/anthropic/client";
 import { buildAdaptationPrompt } from "@/lib/anthropic/prompts";
 import { getToday, addDays } from "@/lib/utils";
+import { getActiveRoadmapGrounding } from "@/lib/roadmap/roadmapPlanGrounding";
 
-export async function POST(request: NextRequest) {
+export async function POST() {
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
@@ -82,7 +83,8 @@ export async function POST(request: NextRequest) {
       completedThemes,
     };
 
-    const prompt = buildAdaptationPrompt(profile as never, previousSummary, signals);
+    const grounding = await getActiveRoadmapGrounding(admin, user.id);
+    const prompt = buildAdaptationPrompt(profile as never, previousSummary, signals, grounding);
     const planJSON = await generatePlan(prompt);
 
     const today = getToday();

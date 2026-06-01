@@ -1,5 +1,4 @@
 import type { OnboardingProfile } from "@/types/onboarding";
-import type { ClaudePlanJSON } from "@/types/plan";
 
 export const TUTOR_MODEL = "claude-sonnet-4-6";
 export const TUTOR_BOOTSTRAP_TURN = "Begin the session.";
@@ -10,7 +9,25 @@ No motivational fluff. Focus on hands-on building over theory.
 All build tasks must produce a real, runnable artifact (script, notebook, function — not toy examples).
 Return ONLY valid JSON matching the schema provided. No markdown wrapper, no prose, no code fences.`;
 
-const PLAN_JSON_SCHEMA = {
+export interface RoadmapPlanGrounding {
+  activeNodeTitle: string;
+  depthTarget: string;
+  resources: {
+    title: string;
+    url: string;
+    resourceType: string | null;
+    estimatedMinutes: number | null;
+  }[];
+  project: {
+    title: string;
+    description: string;
+    deliverable: string | null;
+    estimatedHours: number | null;
+  } | null;
+}
+
+function planJsonSchema(projectName = "Build a Vector Search Engine from Scratch") {
+  return {
   difficulty: "gentle | normal | accelerated",
   narrative: "2-3 sentences connecting the user's stated goals to what they will concretely be able to build/do by day 7. Make it personal and specific — reference their background, their goals, and the exact artifact they'll produce. No generic phrases.",
   days: [
@@ -34,20 +51,55 @@ const PLAN_JSON_SCHEMA = {
     },
   ],
   project: {
-    name: "Build a Vector Search Engine from Scratch",
+    name: projectName,
     description: "project description",
     milestones: [
       { position: "number 1-6", title: "milestone title", description: "specific deliverable" },
     ],
   },
 };
+}
 
-export function buildInitialPlanPrompt(profile: OnboardingProfile): string {
+function buildRoadmapGroundingPrompt(grounding?: RoadmapPlanGrounding | null): string {
+  if (!grounding) return "";
+
+  const resources = grounding.resources
+    .map((resource) => `- ${resource.title}: ${resource.url}${resource.estimatedMinutes ? ` (${resource.estimatedMinutes} minutes)` : ""}`)
+    .join("\n");
+  const project = grounding.project
+    ? `Title: ${grounding.project.title}
+Description: ${grounding.project.description}
+Deliverable: ${grounding.project.deliverable ?? "A runnable proof artifact"}
+Estimated hours: ${grounding.project.estimatedHours ?? "unknown"}`
+    : "No curated project available. Generate a focused proof project for this node.";
+
+  return `
+ACTIVE PERSONALIZED ROADMAP CONTEXT:
+- Active Node: ${grounding.activeNodeTitle}
+- Depth target: ${grounding.depthTarget}
+
+CURATED RESOURCES — use these as the primary study material. Do not invent replacements:
+${resources || "- No curated resources available. Use the fallback curriculum behavior."}
+
+CURATED PROJECT — use this project for the week when available:
+${project}
+`;
+}
+
+export function buildInitialPlanPrompt(
+  profile: OnboardingProfile,
+  grounding?: RoadmapPlanGrounding | null
+): string {
   const goalList = profile.goals.join(", ").replace(/_/g, " ");
   const interestList = profile.interestAreas.join(", ").replace(/_/g, " ");
   const topicsText = profile.familiarTopics.length
     ? `${profile.familiarTopics.join(", ")} — depth: ${profile.topicDepth.replace(/_/g, " ")}`
     : "none";
+  const roadmapContext = buildRoadmapGroundingPrompt(grounding);
+  const projectName = grounding?.project?.title ?? "Build a Vector Search Engine from Scratch";
+  const projectConstraint = grounding?.project
+    ? `- The project MUST be the curated Active Node project named exactly: "${projectName}"`
+    : '- The foundational project MUST be named exactly: "Build a Vector Search Engine from Scratch"';
 
   return `Generate a 7-day personalized AI/ML learning plan for an engineer with this exact profile:
 
@@ -59,13 +111,14 @@ PROFILE:
 - Hours available per day: ${profile.hoursPerDay}
 - Interest areas: ${interestList}
 - Already familiar with: ${topicsText}
+${roadmapContext}
 
 HARD CONSTRAINTS:
 - Total task time per day must fit within ${profile.hoursPerDay} hours (${profile.hoursPerDay * 60} minutes)
 - For topics the user already knows at "have_implemented" depth: skip entirely. At "can_explain" depth: go straight to advanced application, no basics. At "heard_of" depth: keep but compress foundations.
 - Each day must have at least 1 build task (type: "build") that produces a real runnable artifact
 - Difficulty selection: use "gentle" if programming_level=beginner OR math_confidence=low; use "accelerated" if programming_level=senior AND math_confidence=high; otherwise "normal"
-- The foundational project MUST be named exactly: "Build a Vector Search Engine from Scratch"
+${projectConstraint}
 - The project MUST have EXACTLY 6 milestones
 - Milestones must be concrete and specific (e.g., "Implement cosine similarity function and test with 5 sample vectors")
 
@@ -81,7 +134,7 @@ NARRATIVE REQUIREMENTS:
 - Each task's "why" must be specific — explain the causal chain: what this unlocks, or why it's sequenced here
 
 Return ONLY this JSON schema (no prose, no markdown):
-${JSON.stringify(PLAN_JSON_SCHEMA, null, 2)}`;
+${JSON.stringify(planJsonSchema(projectName), null, 2)}`;
 }
 
 interface AdaptationSignals {
@@ -103,7 +156,8 @@ interface PreviousPlanSummary {
 export function buildAdaptationPrompt(
   profile: OnboardingProfile,
   previous: PreviousPlanSummary,
-  signals: AdaptationSignals
+  signals: AdaptationSignals,
+  grounding?: RoadmapPlanGrounding | null
 ): string {
   let difficultyInstruction = `Keep difficulty at "${previous.difficulty}"`;
   if (signals.completionRate < 50 || signals.failCount / Math.max(signals.totalTasks, 1) > 0.3) {
@@ -113,6 +167,11 @@ export function buildAdaptationPrompt(
     const higher = previous.difficulty === "gentle" ? "normal" : "accelerated";
     difficultyInstruction = `Increase difficulty to "${higher}" and add one extra build task per day`;
   }
+  const roadmapContext = buildRoadmapGroundingPrompt(grounding);
+  const projectName = grounding?.project?.title ?? "Build a Vector Search Engine from Scratch";
+  const projectConstraint = grounding?.project
+    ? `- The project section MUST use the curated Active Node project named exactly: "${projectName}"`
+    : "- The project section should be the SAME project (vector search engine) with the SAME 6 milestones — user continues working on it";
 
   return `Generate the NEXT 7-day continuation plan for this engineer.
 
@@ -122,6 +181,7 @@ PROFILE (same as before):
 - Math confidence: ${profile.mathConfidence}
 - Hours available per day: ${profile.hoursPerDay}
 - Interest areas: ${profile.interestAreas.join(", ").replace(/_/g, " ")}
+${roadmapContext}
 
 WHAT HAPPENED LAST WEEK (week ${previous.weekNumber}):
 - Completion rate: ${Math.round(signals.completionRate)}%
@@ -138,10 +198,10 @@ CONSTRAINTS:
 - Build on demonstrated knowledge; go deeper or broader
 - Each day must have at least 1 build task
 - Total task time per day must fit within ${profile.hoursPerDay} hours
-- The project section should be the SAME project (vector search engine) with the SAME 6 milestones — user continues working on it
+${projectConstraint}
 
 Return ONLY this JSON schema (no prose, no markdown):
-${JSON.stringify(PLAN_JSON_SCHEMA, null, 2)}`;
+${JSON.stringify(planJsonSchema(projectName), null, 2)}`;
 }
 
 export function buildTutorSystemPrompt(weekTopic: string, weekNumber: number): string {

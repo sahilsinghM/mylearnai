@@ -1,9 +1,11 @@
 "use client";
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
-import { Sparkle, ArrowRight, Plus, Minus, Maximize2, X } from "lucide-react";
-import type { MasterRoadmapData } from "@/lib/roadmap/types";
-import { RoadmapCanvas, nodeX, nodeY, NODE_W, NODE_H, COL_W, ROW_H, TOP_PAD, LEFT_PAD } from "./RoadmapCanvas";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { Sparkle, ArrowRight, Plus, Minus, Maximize2, Search, X } from "lucide-react";
+import { findNodeIdBySearch, type DomainFilter } from "@/lib/roadmap/graphInteractions";
+import type { DepthLevel, MasterNode, MasterRoadmapData } from "@/lib/roadmap/types";
+import { RoadmapCanvas, COL_W, ROW_H, TOP_PAD, LEFT_PAD } from "./RoadmapCanvas";
 import "@/app/roadmap/roadmap.css";
 
 interface Props {
@@ -18,6 +20,115 @@ interface ViewState {
 
 function clamp(min: number, val: number, max: number) {
   return Math.max(min, Math.min(max, val));
+}
+
+const DOMAIN_FILTERS: { value: DomainFilter; label: string }[] = [
+  { value: "all", label: "All" },
+  { value: "fintech", label: "Fintech" },
+  { value: "research", label: "Research" },
+  { value: "mlops", label: "MLOps" },
+  { value: "dev_tools", label: "Dev tools" },
+  { value: "education_ai", label: "Education" },
+];
+
+const DEPTH_LEVELS: DepthLevel[] = ["awareness", "working", "fluent", "expert"];
+
+function depthDescription(node: MasterNode, depth: DepthLevel): string {
+  return node.depth?.[depth] ?? `${node.blurb} Target this level through a focused ${depth} proof project.`;
+}
+
+function NodeDetailsPanel({
+  node,
+  nodes,
+  edges,
+  onClose,
+  onNavigate,
+}: {
+  node: MasterNode;
+  nodes: MasterNode[];
+  edges: MasterRoadmapData["edges"];
+  onClose: () => void;
+  onNavigate: (nodeId: string) => void;
+}) {
+  const nodeMap = new Map(nodes.map((item) => [item.id, item]));
+  const prerequisites = edges.filter((edge) => edge.to === node.id).map((edge) => nodeMap.get(edge.from)).filter(Boolean) as MasterNode[];
+  const unlocks = edges.filter((edge) => edge.from === node.id).map((edge) => nodeMap.get(edge.to)).filter(Boolean) as MasterNode[];
+  const project = node.projects.find((item) => item.depthLevel === "working") ?? node.projects[0];
+
+  return (
+    <aside className="mr-panel">
+      <div className="mr-panel-head">
+        <div>
+          <div className="mr-panel-eyebrow">Master Node</div>
+          <h2>{node.title}</h2>
+        </div>
+        <button onClick={onClose} aria-label="Close node details"><X size={16} /></button>
+      </div>
+      <p className="mr-panel-blurb">{node.blurb}</p>
+
+      <section>
+        <h3>Depth levels</h3>
+        <div className="mr-depth-list">
+          {DEPTH_LEVELS.map((depth, index) => (
+            <div key={depth} className="mr-depth-item">
+              <div>
+                <strong>{depth}</strong>
+                <span>{node.hours[index]}h</span>
+              </div>
+              <p>{depthDescription(node, depth)}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3>Prerequisites</h3>
+        <div className="mr-panel-links">
+          {prerequisites.length === 0 && <span>None</span>}
+          {prerequisites.map((item) => (
+            <button key={item.id} onClick={() => onNavigate(item.id)}>{item.title}</button>
+          ))}
+        </div>
+      </section>
+
+      <section>
+        <h3>Unlocks</h3>
+        <div className="mr-panel-links">
+          {unlocks.length === 0 && <span>None</span>}
+          {unlocks.map((item) => (
+            <button key={item.id} onClick={() => onNavigate(item.id)}>{item.title}</button>
+          ))}
+        </div>
+      </section>
+
+      {project && (
+        <section>
+          <h3>Working-depth project</h3>
+          <div className="mr-panel-card">
+            <strong>{project.title}</strong>
+            <p>{project.description}</p>
+            {project.deliverable && <small>{project.deliverable}</small>}
+          </div>
+        </section>
+      )}
+
+      <section>
+        <h3>Resources</h3>
+        <div className="mr-resource-list">
+          {node.resources.map((resource) => (
+            <a key={resource.id} href={resource.url} target="_blank" rel="noreferrer">
+              <span>{resource.title}</span>
+              <small>{resource.depthLevel}{resource.estimatedMinutes ? ` · ${resource.estimatedMinutes}m` : ""}</small>
+            </a>
+          ))}
+        </div>
+      </section>
+
+      <Link href={`/sign-up?from=roadmap&node=${node.id}`} className="mr-panel-cta">
+        <Sparkle size={14} /> Personalize this for me <ArrowRight size={14} />
+      </Link>
+    </aside>
+  );
 }
 
 export function RoadmapPage({ data }: Props) {
@@ -39,10 +150,33 @@ export function RoadmapPage({ data }: Props) {
   const dragStart = useRef<{ mx: number; my: number; vx: number; vy: number } | null>(null);
 
   const [bannerOpen, setBannerOpen] = useState(true);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
+  const [hoveredId, setHoveredId] = useState<string | null>(null);
+  const [domainFilter, setDomainFilter] = useState<DomainFilter>("all");
+  const [search, setSearch] = useState("");
+  const selectedNode = useMemo(
+    () => nodes.find((node) => node.id === selectedId) ?? null,
+    [nodes, selectedId]
+  );
 
   const stageRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef(view);
   useEffect(() => { viewRef.current = view; }, [view]);
+
+  useEffect(() => {
+    const syncFromUrl = () => {
+      const hashId = window.location.hash.slice(1);
+      if (nodes.some((node) => node.id === hashId)) setSelectedId(hashId);
+
+      const filter = new URLSearchParams(window.location.search).get("for");
+      if (DOMAIN_FILTERS.some((item) => item.value === filter)) {
+        setDomainFilter(filter as DomainFilter);
+      }
+    };
+    syncFromUrl();
+    window.addEventListener("hashchange", syncFromUrl);
+    return () => window.removeEventListener("hashchange", syncFromUrl);
+  }, [nodes]);
 
   const fit = useCallback(() => {
     const stage = stageRef.current;
@@ -70,7 +204,7 @@ export function RoadmapPage({ data }: Props) {
   // Pan handlers
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    if (target.closest(".mr-node") || target.closest(".mr-controls") || target.closest(".mr-legend") || target.closest(".mr-banner")) return;
+    if (target.closest(".mr-node") || target.closest(".mr-controls") || target.closest(".mr-legend") || target.closest(".mr-banner") || target.closest(".mr-panel")) return;
     setDragging(true);
     dragStart.current = { mx: e.clientX, my: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
   }, []);
@@ -126,28 +260,45 @@ export function RoadmapPage({ data }: Props) {
     });
   };
 
-  const handleNodeClick = useCallback((_nodeId: string) => {
-    // no-op for now — interactions in Task 2
+  const selectNode = useCallback((nodeId: string | null) => {
+    setSelectedId(nodeId);
+    const url = new URL(window.location.href);
+    url.hash = nodeId ?? "";
+    window.history.replaceState(null, "", url);
   }, []);
+
+  const changeDomainFilter = useCallback((filter: DomainFilter) => {
+    setDomainFilter(filter);
+    const url = new URL(window.location.href);
+    if (filter === "all") url.searchParams.delete("for");
+    else url.searchParams.set("for", filter);
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  const changeSearch = useCallback((value: string) => {
+    setSearch(value);
+    const match = findNodeIdBySearch(value, nodes);
+    if (match) selectNode(match);
+  }, [nodes, selectNode]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
       {/* Top Nav */}
       <nav className="mr-topnav">
-        <a href="/roadmap" className="mr-nav-logo">
+        <Link href="/roadmap" className="mr-nav-logo">
           <div className="mr-logo-dot" />
           DeepPath
-        </a>
-        <a href="/roadmap" className="mr-nav-link">Roadmap</a>
+        </Link>
+        <Link href="/roadmap" className="mr-nav-link">Roadmap</Link>
         <a href="#how-it-works" className="mr-nav-link">How it works</a>
         <a href="#compare" className="mr-nav-link">Compare</a>
         <div className="mr-nav-spacer" />
-        <a href="/sign-in" className="mr-signin-link">Sign in</a>
-        <button className="mr-cta-btn">
+        <Link href="/sign-in" className="mr-signin-link">Sign in</Link>
+        <Link href="/sign-up?from=roadmap" className="mr-cta-btn">
           <Sparkle size={13} />
           Personalize for me
           <ArrowRight size={13} />
-        </button>
+        </Link>
       </nav>
 
       {/* Hero */}
@@ -180,7 +331,23 @@ export function RoadmapPage({ data }: Props) {
       </div>
 
       {/* Toolbar */}
-      <div className="mr-toolbar" />
+      <div className="mr-toolbar">
+        <label className="mr-search">
+          <Search size={13} />
+          <input value={search} onChange={(event) => changeSearch(event.target.value)} placeholder="Search topics" />
+        </label>
+        <div className="mr-filter-list">
+          {DOMAIN_FILTERS.map((filter) => (
+            <button
+              key={filter.value}
+              onClick={() => changeDomainFilter(filter.value)}
+              data-active={domainFilter === filter.value ? "true" : undefined}
+            >
+              {filter.label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Stage */}
       <div
@@ -203,7 +370,11 @@ export function RoadmapPage({ data }: Props) {
           viewState={view}
           canvasWidth={canvasWidth}
           canvasHeight={canvasHeight}
-          onNodeClick={handleNodeClick}
+          selectedId={selectedId}
+          hoveredId={hoveredId}
+          domainFilter={domainFilter}
+          onNodeClick={selectNode}
+          onNodeHover={setHoveredId}
         />
 
         {/* Zoom controls */}
@@ -252,10 +423,10 @@ export function RoadmapPage({ data }: Props) {
                 <strong>let the agent pick</strong> for your goal.
               </span>
             </div>
-            <button className="mr-banner-primary-btn">
+            <Link href="/sign-up?from=roadmap" className="mr-banner-primary-btn">
               <Sparkle size={13} />
               Personalize
-            </button>
+            </Link>
             <button
               className="mr-banner-close-btn"
               onClick={() => setBannerOpen(false)}
@@ -264,6 +435,16 @@ export function RoadmapPage({ data }: Props) {
               <X size={12} />
             </button>
           </div>
+        )}
+
+        {selectedNode && (
+          <NodeDetailsPanel
+            node={selectedNode}
+            nodes={nodes}
+            edges={edges}
+            onClose={() => selectNode(null)}
+            onNavigate={selectNode}
+          />
         )}
       </div>
     </div>

@@ -4,7 +4,6 @@ import { useState } from "react";
 import { ChevronDown, ChevronRight, Zap } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { TaskItem } from "./TaskItem";
-import { cn } from "@/lib/utils";
 import { formatDateShort } from "@/lib/utils";
 import type { PlanDay, Task } from "@/types/plan";
 

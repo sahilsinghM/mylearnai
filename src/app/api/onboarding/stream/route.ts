@@ -6,6 +6,8 @@ import { claudePlanSchema } from "@/lib/anthropic/schemas";
 import { getToday, addDays } from "@/lib/utils";
 import type { OnboardingProfile } from "@/types/onboarding";
 import Anthropic from "@anthropic-ai/sdk";
+import { personalizeOnboardingRoadmap } from "@/lib/roadmap/personalizeOnboardingRoadmap";
+import { getActiveRoadmapGrounding } from "@/lib/roadmap/roadmapPlanGrounding";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY! });
 
@@ -56,10 +58,14 @@ export async function POST(request: NextRequest) {
           updated_at: new Date().toISOString(),
         }, { onConflict: "user_id" });
 
-        send({ type: "status", message: "Profile saved. Generating your personalized plan..." });
+        send({ type: "status", message: "Profile saved. Building your personalized roadmap..." });
+        const roadmapReveal = await personalizeOnboardingRoadmap(admin, user.id, profile);
+
+        send({ type: "status", message: "Roadmap ready. Generating your first weekly plan..." });
 
         // Stream Claude response
-        const prompt = buildInitialPlanPrompt(profile);
+        const grounding = await getActiveRoadmapGrounding(admin, user.id);
+        const prompt = buildInitialPlanPrompt(profile, grounding);
         let fullText = "";
 
         const claudeStream = anthropic.messages.stream({
@@ -200,7 +206,7 @@ export async function POST(request: NextRequest) {
           .update({ onboarding_completed_at: new Date().toISOString() })
           .eq("id", user.id);
 
-        send({ type: "done", planId: plan.id, projectId: project.id });
+        send({ type: "done", planId: plan.id, projectId: project.id, roadmapReveal });
         controller.close();
       } catch (err) {
         const message = err instanceof Error ? err.message : "Internal error";

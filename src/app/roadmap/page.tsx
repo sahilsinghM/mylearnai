@@ -1,8 +1,6 @@
 import { getMasterRoadmap } from "@/lib/roadmap/masterRoadmap";
 import { RoadmapPage } from "@/components/roadmap/RoadmapPage";
 
-export const dynamic = "force-dynamic";
-
 export const metadata = {
   title: "AI Engineering Roadmap — DeepPath",
   description: "The master AI engineering roadmap, before it knows you.",

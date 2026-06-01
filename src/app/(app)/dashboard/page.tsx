@@ -7,6 +7,10 @@ import { StatsBar } from "@/components/dashboard/StatsBar";
 import { WeekCompleteBar } from "@/components/dashboard/WeekCompleteBar";
 import { getToday } from "@/lib/utils";
 import type { LearningPlan, PlanDay, Task, Milestone, Project, ClaudePlanJSON } from "@/types/plan";
+import { getRoadmapDashboard } from "@/lib/roadmap/getRoadmapDashboard";
+import { PersonalizedRoadmapDashboard } from "@/components/dashboard/PersonalizedRoadmapDashboard";
+import { getAdaptationLog } from "@/lib/roadmap/getAdaptationLog";
+import { AdaptationLogTimeline } from "@/components/dashboard/AdaptationLogTimeline";
 
 async function getPlanData(userId: string) {
   const supabase = await createClient();
@@ -136,9 +140,11 @@ export default async function DashboardPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return null;
 
-  const [{ plan, days, dayHooks }, project] = await Promise.all([
+  const [{ plan, days, dayHooks }, project, roadmap, adaptationLog] = await Promise.all([
     getPlanData(user.id),
     getProjectData(user.id),
+    getRoadmapDashboard(user.id),
+    getAdaptationLog(user.id),
   ]);
 
   const today = getToday();
@@ -160,6 +166,14 @@ export default async function DashboardPage() {
       <div className="p-6 space-y-6 max-w-4xl">
         {plan && weekDone && <WeekCompleteBar weekNumber={plan.weekNumber} />}
         {plan && <StatsBar plan={plan} />}
+        {roadmap && (
+          <PersonalizedRoadmapDashboard
+            dashboard={roadmap.dashboard}
+            nodes={roadmap.graph.nodes}
+            edges={roadmap.graph.edges}
+          />
+        )}
+        {roadmap && <AdaptationLogTimeline initialEntries={adaptationLog} />}
 
         {days.length > 0 && (
           <div className="space-y-2">

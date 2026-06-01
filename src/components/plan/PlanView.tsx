@@ -359,6 +359,8 @@ export function PlanView({ days, narrative, difficulty, weekNumber, todayDayNumb
             </p>
           )}
           <div className="flex items-center gap-[10px] flex-wrap">
+            <span className="text-[12.5px] text-[--muted-foreground]">Week {weekNumber}</span>
+            <span className="w-[3px] h-[3px] rounded-full bg-[--muted-foreground] inline-block" />
             <span className="font-mono text-[11px] capitalize tracking-[0.02em] px-[10px] py-1 rounded-[6px] text-primary whitespace-nowrap border"
               style={{ background: "color-mix(in oklab, var(--primary) 13%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 28%, transparent)" }}>
               {difficulty} pace

@@ -1,7 +1,6 @@
 "use client";
 
 import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import type { Goal } from "@/types/onboarding";
 
 const options: { value: Goal; label: string; desc: string }[] = [

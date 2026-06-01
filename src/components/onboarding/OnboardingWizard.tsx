@@ -13,6 +13,8 @@ import { Step5Time } from "./steps/Step5Time";
 import { Step6Interests } from "./steps/Step6Interests";
 import { Step7Topics } from "./steps/Step7Topics";
 import type { OnboardingProfile, TopicDepth } from "@/types/onboarding";
+import type { RoadmapReveal as RoadmapRevealData } from "@/lib/roadmap/types";
+import { RoadmapReveal } from "./RoadmapReveal";
 
 const TOTAL_STEPS = 7;
 
@@ -33,6 +35,7 @@ export function OnboardingWizard() {
   const [streamText, setStreamText] = useState("");
   const [streamStatus, setStreamStatus] = useState("Connecting...");
   const [error, setError] = useState("");
+  const [roadmapReveal, setRoadmapReveal] = useState<RoadmapRevealData | null>(null);
 
   const [profile, setProfile] = useState<Partial<OnboardingProfile>>({
     languages: [],
@@ -94,7 +97,7 @@ export function OnboardingWizard() {
           const raw = line.slice(6).trim();
           if (!raw) continue;
 
-          let event: { type: string; text?: string; message?: string; planId?: string; projectId?: string };
+          let event: { type: string; text?: string; message?: string; planId?: string; projectId?: string; roadmapReveal?: RoadmapRevealData };
           try {
             event = JSON.parse(raw);
           } catch {
@@ -106,9 +109,9 @@ export function OnboardingWizard() {
           } else if (event.type === "status" && event.message) {
             setStreamStatus(event.message);
           } else if (event.type === "done") {
-            setStreamStatus("Plan ready! Redirecting...");
-            router.push("/dashboard");
-            router.refresh();
+            if (!event.roadmapReveal) throw new Error("Roadmap reveal missing");
+            setRoadmapReveal(event.roadmapReveal);
+            setGenerating(false);
             return;
           } else if (event.type === "error") {
             throw new Error(event.message || "Generation failed");
@@ -119,6 +122,13 @@ export function OnboardingWizard() {
       setError(err instanceof Error ? err.message : "Failed to generate plan");
       setGenerating(false);
     }
+  }
+
+  if (roadmapReveal) {
+    return <RoadmapReveal reveal={roadmapReveal} onStart={() => {
+      router.push("/dashboard");
+      router.refresh();
+    }} />;
   }
 
   if (generating) return <GeneratingPlan streamText={streamText} status={streamStatus} />;

@@ -5,6 +5,8 @@ import { generatePlan } from "@/lib/anthropic/client";
 import { buildInitialPlanPrompt } from "@/lib/anthropic/prompts";
 import { getToday, addDays } from "@/lib/utils";
 import type { OnboardingProfile } from "@/types/onboarding";
+import { personalizeOnboardingRoadmap } from "@/lib/roadmap/personalizeOnboardingRoadmap";
+import { getActiveRoadmapGrounding } from "@/lib/roadmap/roadmapPlanGrounding";
 
 export async function POST(request: NextRequest) {
   try {
@@ -35,8 +37,11 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     }, { onConflict: "user_id" });
 
+    const roadmapReveal = await personalizeOnboardingRoadmap(admin, user.id, profile);
+
     // Generate plan with Claude
-    const prompt = buildInitialPlanPrompt(profile);
+    const grounding = await getActiveRoadmapGrounding(admin, user.id);
+    const prompt = buildInitialPlanPrompt(profile, grounding);
     const planJSON = await generatePlan(prompt);
 
     const today = getToday();
@@ -126,7 +131,7 @@ export async function POST(request: NextRequest) {
       .update({ onboarding_completed_at: new Date().toISOString() })
       .eq("id", user.id);
 
-    return NextResponse.json({ planId: plan.id, projectId: project.id }, { status: 201 });
+    return NextResponse.json({ planId: plan.id, projectId: project.id, roadmapReveal }, { status: 201 });
   } catch (err) {
     console.error("Onboarding error:", err);
     return NextResponse.json(

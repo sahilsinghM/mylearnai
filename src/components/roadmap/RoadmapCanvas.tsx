@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { getDependencyNeighborhood, isRelevantToDomain, type DomainFilter } from "@/lib/roadmap/graphInteractions";
 import type { MasterNode, MasterEdge, Phase } from "@/lib/roadmap/types";
 
 const NODE_W = 210;
@@ -26,11 +27,6 @@ function nodeY(row: number) {
   return TOP_PAD + row * ROW_H;
 }
 
-interface NodeWithPos extends MasterNode {
-  x: number;
-  y: number;
-}
-
 interface ViewState {
   x: number;
   y: number;
@@ -44,7 +40,11 @@ interface RoadmapCanvasProps {
   viewState: ViewState;
   canvasWidth: number;
   canvasHeight: number;
+  selectedId: string | null;
+  hoveredId: string | null;
+  domainFilter: DomainFilter;
   onNodeClick: (nodeId: string) => void;
+  onNodeHover: (nodeId: string | null) => void;
 }
 
 export function RoadmapCanvas({
@@ -54,7 +54,11 @@ export function RoadmapCanvas({
   viewState,
   canvasWidth,
   canvasHeight,
+  selectedId,
+  hoveredId,
+  domainFilter,
   onNodeClick,
+  onNodeHover,
 }: RoadmapCanvasProps) {
   const nodesWithPos = useMemo(() =>
     nodes.map((n) => ({ ...n, x: nodeX(n.phase), y: nodeY(n.row) })),
@@ -66,6 +70,11 @@ export function RoadmapCanvas({
   );
 
   const transform = `translate(${viewState.x}px, ${viewState.y}px) scale(${viewState.scale})`;
+  const activeId = hoveredId ?? selectedId;
+  const neighborhood = useMemo(
+    () => activeId ? getDependencyNeighborhood(activeId, edges) : null,
+    [activeId, edges]
+  );
 
   return (
     <div
@@ -140,12 +149,23 @@ export function RoadmapCanvas({
           const d = `M${x1},${y1} C${x1 + dx},${y1} ${x2 - dx},${y2} ${x2},${y2}`;
 
           const isRecommended = edge.type === "recommended";
+          const isPrerequisite = !!activeId
+            && neighborhood?.prerequisiteIds.has(edge.from)
+            && (edge.to === activeId || neighborhood.prerequisiteIds.has(edge.to));
+          const isUnlock = !!activeId
+            && (edge.from === activeId || neighborhood?.unlockIds.has(edge.from))
+            && neighborhood?.unlockIds.has(edge.to);
           return (
             <path
               key={i}
               d={d}
-              className={isRecommended ? "recommended" : "required"}
-              stroke="var(--border)"
+              className={[
+                isRecommended ? "recommended" : "required",
+                isPrerequisite ? "is-prerequisite" : "",
+                isUnlock ? "is-unlock" : "",
+                activeId && !isPrerequisite && !isUnlock ? "is-muted" : "",
+              ].filter(Boolean).join(" ")}
+              stroke={isPrerequisite ? "var(--emerald)" : isUnlock ? "var(--primary)" : "var(--border)"}
               strokeWidth={1.5}
               fill="none"
               strokeDasharray={isRecommended ? "4 4" : undefined}
@@ -161,17 +181,30 @@ export function RoadmapCanvas({
         const phaseLabel = phases.find((p) => p.n === node.phase)?.label ?? `P${node.phase}`;
         const hoursWorking = node.hours[1];
         const depthOpacities = [1.0, 0.75, 0.5, 0.3];
+        const isSelected = node.id === selectedId;
+        const isPrerequisite = neighborhood?.prerequisiteIds.has(node.id);
+        const isUnlock = neighborhood?.unlockIds.has(node.id);
+        const isMutedBySelection = !!activeId && node.id !== activeId && !isPrerequisite && !isUnlock;
+        const isMutedByDomain = !isRelevantToDomain(node, domainFilter);
 
         return (
           <div
             key={node.id}
-            className="mr-node"
+            className={[
+              "mr-node",
+              isSelected ? "is-selected" : "",
+              isPrerequisite ? "is-prerequisite" : "",
+              isUnlock ? "is-unlock" : "",
+              isMutedBySelection || isMutedByDomain ? "is-muted" : "",
+            ].filter(Boolean).join(" ")}
             style={{
               left: node.x,
               top: node.y,
               ["--phase" as string]: color,
             } as React.CSSProperties}
             onClick={() => onNodeClick(node.id)}
+            onMouseEnter={() => onNodeHover(node.id)}
+            onMouseLeave={() => onNodeHover(null)}
           >
             <div className="node-head">
               <div className="node-phase-dot" />
