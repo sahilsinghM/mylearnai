@@ -107,9 +107,9 @@
 
 .mr-eyebrow {
   font-family: var(--font-geist-mono);
-  font-size: 10px;
+  font-size: 11px;
   color: var(--primary);
-  letter-spacing: 0.1em;
+  letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
@@ -150,10 +150,10 @@
 
 .mr-stat-label {
   font-family: var(--font-geist-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--muted-foreground);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 /* ── Toolbar ── */
@@ -282,16 +282,16 @@
 
 .phase-n {
   font-family: var(--font-geist-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   color: var(--muted-foreground);
 }
 
 .phase-name {
   font-family: var(--font-geist-mono);
-  font-size: 10.5px;
+  font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.12em;
+  letter-spacing: 0.1em;
 }
 
 /* ── Node cards ── */
@@ -352,10 +352,10 @@
 
 .node-phase-label {
   font-family: var(--font-geist-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--phase);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
 }
 
 .node-title {
@@ -487,10 +487,10 @@
   align-items: center;
   gap: 5px;
   font-family: var(--font-geist-mono);
-  font-size: 10px;
+  font-size: 11px;
   text-transform: uppercase;
   color: var(--muted-foreground);
-  letter-spacing: 0.06em;
+  letter-spacing: 0.05em;
 }
 
 .legend-line {
@@ -537,10 +537,10 @@
 
 .mr-banner-eyebrow {
   font-family: var(--font-geist-mono);
-  font-size: 9.5px;
+  font-size: 11px;
   color: var(--primary);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: 0.06em;
   margin-bottom: 2px;
 }
 
