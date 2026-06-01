@@ -223,6 +223,7 @@ export function RoadmapPage({ data }: Props) {
 
   // Wheel zoom
   const handleWheel = useCallback((e: WheelEvent) => {
+    if ((e.target as HTMLElement).closest(".mr-panel")) return;
     e.preventDefault();
     const stage = stageRef.current;
     if (!stage) return;
