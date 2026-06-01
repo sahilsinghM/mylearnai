@@ -170,16 +170,16 @@ export async function POST(request: NextRequest) {
           await admin.from("tasks").insert(taskRows);
         }
 
-        // Insert project and milestones
+        // Upsert project (user_id is UNIQUE — re-running onboarding replaces the existing project)
         const { data: project, error: projectError } = await admin
           .from("projects")
-          .insert({
+          .upsert({
             user_id: user.id,
             plan_id: plan.id,
             name: planJSON.project.name,
             description: planJSON.project.description,
             status: "active",
-          })
+          }, { onConflict: "user_id" })
           .select("id")
           .single();
 
@@ -188,6 +188,9 @@ export async function POST(request: NextRequest) {
           controller.close();
           return;
         }
+
+        // Delete old milestones before inserting new ones
+        await admin.from("milestones").delete().eq("project_id", project.id);
 
         const milestoneRows = planJSON.project.milestones.map((m) => ({
           project_id: project.id,
