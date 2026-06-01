@@ -23,7 +23,7 @@ export function Step2AiMl({ value, onChange }: Props) {
         <h2 className="text-xl font-semibold">How familiar are you with AI/ML?</h2>
         <p className="text-sm text-muted-foreground mt-1">This calibrates where your plan starts.</p>
       </div>
-      <RadioGroup value={value} onValueChange={(v) => onChange(v as AimlFamiliarity)} className="space-y-2">
+      <RadioGroup value={value ?? ""} onValueChange={(v) => onChange(v as AimlFamiliarity)} className="space-y-2">
         {options.map((opt) => (
           <label
             key={opt.value}

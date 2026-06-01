@@ -23,7 +23,7 @@ export function Step5Time({ value, onChange }: Props) {
         <p className="text-sm text-muted-foreground mt-1">Be realistic — we size tasks to your actual availability.</p>
       </div>
       <RadioGroup
-        value={value?.toString()}
+        value={value?.toString() ?? ""}
         onValueChange={(v) => onChange(Number(v))}
         className="space-y-2"
       >

@@ -22,7 +22,7 @@ export function Step3Math({ value, onChange }: Props) {
         <h2 className="text-xl font-semibold">How&apos;s your math confidence?</h2>
         <p className="text-sm text-muted-foreground mt-1">No judgment — this affects how much theory we include.</p>
       </div>
-      <RadioGroup value={value} onValueChange={(v) => onChange(v as MathConfidence)} className="space-y-2">
+      <RadioGroup value={value ?? ""} onValueChange={(v) => onChange(v as MathConfidence)} className="space-y-2">
         {options.map((opt) => (
           <label
             key={opt.value}

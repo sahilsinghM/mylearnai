@@ -22,7 +22,7 @@ export function Step1Background({ value, onChange }: Props) {
         <h2 className="text-xl font-semibold">What&apos;s your programming level?</h2>
         <p className="text-sm text-muted-foreground mt-1">Be honest — this determines your starting point.</p>
       </div>
-      <RadioGroup value={value} onValueChange={(v) => onChange(v as ProgrammingLevel)} className="space-y-2">
+      <RadioGroup value={value ?? ""} onValueChange={(v) => onChange(v as ProgrammingLevel)} className="space-y-2">
         {options.map((opt) => (
           <label
             key={opt.value}
