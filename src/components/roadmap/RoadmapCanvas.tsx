@@ -4,10 +4,10 @@ import React, { useMemo } from "react";
 import { getDependencyNeighborhood, isRelevantToDomain, type DomainFilter } from "@/lib/roadmap/graphInteractions";
 import type { MasterNode, MasterEdge, Phase } from "@/lib/roadmap/types";
 
-const NODE_W = 210;
-const NODE_H = 86;
-const COL_W = 240;
-const ROW_H = 118;
+const NODE_W = 224;
+const NODE_H = 90;
+const COL_W = 256;
+const ROW_H = 124;
 const TOP_PAD = 80;
 const LEFT_PAD = 28;
 
@@ -178,7 +178,6 @@ export function RoadmapCanvas({
       {nodesWithPos.map((node) => {
         const hue = PHASE_HUES[node.phase] ?? 220;
         const color = phaseColor(hue);
-        const phaseLabel = phases.find((p) => p.n === node.phase)?.label ?? `P${node.phase}`;
         const hoursWorking = node.hours[1];
         const depthOpacities = [1.0, 0.75, 0.5, 0.3];
         const isSelected = node.id === selectedId;
@@ -208,7 +207,6 @@ export function RoadmapCanvas({
           >
             <div className="node-head">
               <div className="node-phase-dot" />
-              <span className="node-phase-label">{phaseLabel}</span>
             </div>
             <p className="node-title">{node.title}</p>
             <div className="node-foot">

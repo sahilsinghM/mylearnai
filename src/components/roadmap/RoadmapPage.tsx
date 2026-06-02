@@ -2,8 +2,8 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { Sparkle, ArrowRight, Plus, Minus, Maximize2, Search, X } from "lucide-react";
-import { findNodeIdBySearch, type DomainFilter } from "@/lib/roadmap/graphInteractions";
+import { Sparkle, ArrowRight, Plus, Minus, Maximize2, X } from "lucide-react";
+import { type DomainFilter } from "@/lib/roadmap/graphInteractions";
 import type { DepthLevel, MasterNode, MasterRoadmapData } from "@/lib/roadmap/types";
 import { RoadmapCanvas, COL_W, ROW_H, TOP_PAD, LEFT_PAD } from "./RoadmapCanvas";
 import "@/app/roadmap/roadmap.css";
@@ -33,8 +33,15 @@ const DOMAIN_FILTERS: { value: DomainFilter; label: string }[] = [
 
 const DEPTH_LEVELS: DepthLevel[] = ["awareness", "working", "fluent", "expert"];
 
+const DEPTH_FALLBACKS: Record<DepthLevel, string> = {
+  awareness: "Understand the concept well enough to explain it and recognize it in context.",
+  working:   "Apply it in a real project under normal conditions without looking things up.",
+  fluent:    "Debug, extend, and reason about edge cases without reference material.",
+  expert:    "Teach it, benchmark it, and make architectural decisions that depend on it.",
+};
+
 function depthDescription(node: MasterNode, depth: DepthLevel): string {
-  return node.depth?.[depth] ?? `${node.blurb} Target this level through a focused ${depth} proof project.`;
+  return node.depth?.[depth] ?? DEPTH_FALLBACKS[depth];
 }
 
 function NodeDetailsPanel({
@@ -153,7 +160,6 @@ export function RoadmapPage({ data }: Props) {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [hoveredId, setHoveredId] = useState<string | null>(null);
   const [domainFilter, setDomainFilter] = useState<DomainFilter>("all");
-  const [search, setSearch] = useState("");
   const selectedNode = useMemo(
     () => nodes.find((node) => node.id === selectedId) ?? null,
     [nodes, selectedId]
@@ -201,13 +207,36 @@ export function RoadmapPage({ data }: Props) {
     return () => ro.disconnect();
   }, [fit]);
 
+  const selectNode = useCallback((nodeId: string | null) => {
+    setSelectedId(nodeId);
+    const url = new URL(window.location.href);
+    url.hash = nodeId ?? "";
+    window.history.replaceState(null, "", url);
+  }, []);
+
+  // Escape key to deselect
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && selectedId) selectNode(null);
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [selectedId, selectNode]);
+
   // Pan handlers
   const handleMouseDown = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     const target = e.target as HTMLElement;
-    if (target.closest(".mr-node") || target.closest(".mr-controls") || target.closest(".mr-legend") || target.closest(".mr-banner") || target.closest(".mr-panel")) return;
+    if (target.closest(".mr-controls") || target.closest(".mr-legend") || target.closest(".mr-banner") || target.closest(".mr-panel")) return;
+    if (target.closest(".mr-node")) {
+      setDragging(true);
+      dragStart.current = { mx: e.clientX, my: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+      return;
+    }
+    // Background click: deselect node, then start pan
+    selectNode(null);
     setDragging(true);
     dragStart.current = { mx: e.clientX, my: e.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
-  }, []);
+  }, [selectNode]);
 
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
     if (!dragging || !dragStart.current) return;
@@ -261,13 +290,6 @@ export function RoadmapPage({ data }: Props) {
     });
   };
 
-  const selectNode = useCallback((nodeId: string | null) => {
-    setSelectedId(nodeId);
-    const url = new URL(window.location.href);
-    url.hash = nodeId ?? "";
-    window.history.replaceState(null, "", url);
-  }, []);
-
   const changeDomainFilter = useCallback((filter: DomainFilter) => {
     setDomainFilter(filter);
     const url = new URL(window.location.href);
@@ -275,12 +297,6 @@ export function RoadmapPage({ data }: Props) {
     else url.searchParams.set("for", filter);
     window.history.replaceState(null, "", url);
   }, []);
-
-  const changeSearch = useCallback((value: string) => {
-    setSearch(value);
-    const match = findNodeIdBySearch(value, nodes);
-    if (match) selectNode(match);
-  }, [nodes, selectNode]);
 
   return (
     <div style={{ display: "flex", flexDirection: "column", height: "100dvh", overflow: "hidden" }}>
@@ -290,9 +306,6 @@ export function RoadmapPage({ data }: Props) {
           <div className="mr-logo-dot" />
           DeepPath
         </Link>
-        <Link href="/roadmap" className="mr-nav-link">Roadmap</Link>
-        <a href="#how-it-works" className="mr-nav-link">How it works</a>
-        <a href="#compare" className="mr-nav-link">Compare</a>
         <div className="mr-nav-spacer" />
         <Link href="/sign-in" className="mr-signin-link">Sign in</Link>
         <Link href="/sign-up?from=roadmap" className="mr-cta-btn">
@@ -304,50 +317,10 @@ export function RoadmapPage({ data }: Props) {
 
       {/* Hero */}
       <div className="mr-hero">
-        <div className="mr-hero-left">
-          <span className="mr-eyebrow">The Master Roadmap</span>
-          <h1 className="mr-hero-title">
-            The AI engineering roadmap,{" "}
-            <span className="highlight">before</span> it knows you.
-          </h1>
-        </div>
-        <div className="mr-hero-stats">
-          <div className="mr-stat">
-            <span className="mr-stat-num">{nodes.length}</span>
-            <span className="mr-stat-label">Nodes</span>
-          </div>
-          <div className="mr-stat">
-            <span className="mr-stat-num">{phases.length}</span>
-            <span className="mr-stat-label">Phases</span>
-          </div>
-          <div className="mr-stat">
-            <span className="mr-stat-num">{edgeCount}</span>
-            <span className="mr-stat-label">Deps</span>
-          </div>
-          <div className="mr-stat">
-            <span className="mr-stat-num">{totalHoursWorking}</span>
-            <span className="mr-stat-label">To Working</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Toolbar */}
-      <div className="mr-toolbar">
-        <label className="mr-search">
-          <Search size={13} />
-          <input value={search} onChange={(event) => changeSearch(event.target.value)} placeholder="Search topics" />
-        </label>
-        <div className="mr-filter-list">
-          {DOMAIN_FILTERS.map((filter) => (
-            <button
-              key={filter.value}
-              onClick={() => changeDomainFilter(filter.value)}
-              data-active={domainFilter === filter.value ? "true" : undefined}
-            >
-              {filter.label}
-            </button>
-          ))}
-        </div>
+        <h1 className="mr-hero-title">
+          The AI engineering roadmap,{" "}
+          <span className="highlight">before</span> it knows you.
+        </h1>
       </div>
 
       {/* Stage */}
