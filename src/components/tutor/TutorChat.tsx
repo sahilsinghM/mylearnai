@@ -110,7 +110,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
   const criteria = [projectAssignment.acceptance_criteria[0] ?? projectAssignment.title, ...projectAssignment.acceptance_criteria.slice(1)];
 
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-[--background] z-20 animate-dp-rev-up">
+    <div className="flex-1 overflow-y-auto bg-[--background] animate-dp-rev-up">
       <div className="max-w-[720px] mx-auto px-6 pt-14 pb-20">
         <div className="flex items-center gap-[13px] mb-[26px]">
           <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
@@ -320,9 +320,14 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       : null;
 
   return (
-    <div className="flex flex-1 min-h-0 relative overflow-hidden">
+    <div className="flex flex-1 min-h-0 relative">
+      {/* Proof reveal — replaces chat once session ends */}
+      {phase === "revealed" && result && (
+        <ProofReveal result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={restart} />
+      )}
+
       {/* Chat column */}
-      <div className="flex flex-1 flex-col min-w-0">
+      <div className={`flex flex-1 flex-col min-w-0 ${phase === "revealed" ? "hidden" : ""}`}>
         {/* Week banner */}
         <div className="flex items-center gap-2 px-6 py-[9px] text-primary text-[12px] border-b"
           style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
@@ -434,11 +439,6 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
       {/* Analyzing overlay */}
       {phase === "analyzing" && <AnalyzingOverlay step={analyzeStep} />}
-
-      {/* Proof reveal */}
-      {phase === "revealed" && result && (
-        <ProofReveal result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={restart} />
-      )}
     </div>
   );
 }
