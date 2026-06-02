@@ -320,7 +320,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       : null;
 
   return (
-    <div className="flex flex-1 min-h-0 relative">
+    <div className="flex flex-1 min-h-0 relative overflow-hidden">
       {/* Chat column */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Week banner */}
