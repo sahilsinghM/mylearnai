@@ -75,7 +75,7 @@ body {
 /* Transform-only entrance animations — opacity stays 1 so paused animations don't hide content */
 @keyframes dp-rise { from { transform: translateY(9px); } to { transform: none; } }
 @keyframes dp-pop { from { transform: scale(0.94) translateY(6px); } to { transform: none; } }
-@keyframes dp-rev-up { from { transform: translateY(12px); } to { transform: none; } }
+@keyframes dp-rev-up { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes dp-stamp { 0% { transform: scale(1.5) rotate(-12deg); } 100% { transform: none; } }
 @keyframes dp-slide-in { from { transform: translateX(24px); } to { transform: none; } }
 @keyframes dp-spin { to { transform: rotate(360deg); } }

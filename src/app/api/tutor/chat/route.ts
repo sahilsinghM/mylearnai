@@ -1,6 +1,6 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { buildTutorSystemPrompt, extractJsonFromResponse, TUTOR_MODEL, TUTOR_BOOTSTRAP_TURN } from "@/lib/anthropic/prompts";
+import { buildTutorSystemPrompt, extractJsonFromResponse, sanitizeTopicForPrompt, TUTOR_MODEL, TUTOR_BOOTSTRAP_TURN } from "@/lib/anthropic/prompts";
 import { getWeekContext } from "@/lib/tutor/context";
 import { checkRateLimit } from "@/lib/tutor/rate-limit";
 import { z } from "zod";
@@ -33,16 +33,16 @@ export async function POST(request: NextRequest) {
   const { allowed } = checkRateLimit(`chat:${user.id}`, 30);
   if (!allowed) return NextResponse.json({ error: "Rate limited" }, { status: 429 });
 
-  const context = await getWeekContext(user.id);
-  if (!context) return NextResponse.json({ error: "No active plan" }, { status: 400 });
-
   const body = await request.json();
   const parse = bodySchema.safeParse(body);
   if (!parse.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
+  const context = await getWeekContext(user.id);
   const { conversationHistory, weekTopic } = parse.data;
-  const topic = weekTopic ?? context.weekTopic;
-  const systemPrompt = buildTutorSystemPrompt(topic, context.weekNumber);
+  const rawTopic = weekTopic ?? context?.weekTopic;
+  if (!rawTopic) return NextResponse.json({ error: "Topic required" }, { status: 400 });
+  const topic = sanitizeTopicForPrompt(rawTopic);
+  const systemPrompt = buildTutorSystemPrompt(topic, context?.weekNumber ?? 1);
 
   const messages = conversationHistory.length === 0
     ? [{ role: "user" as const, content: TUTOR_BOOTSTRAP_TURN }]
