@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { ExternalLink } from "lucide-react";
 import { TutorChat } from "./TutorChat";
 import type { PlanDay } from "@/lib/tutor/context";
 import { canStartSession, type Level } from "@/lib/tutor/presession";
@@ -30,6 +31,9 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount }: Pr
   const [selectedTopic, setSelectedTopic] = useState(defaultTopic);
   const [selectedLevel, setSelectedLevel] = useState<Level>("");
   const [started, setStarted] = useState(false);
+
+  const selectedDay = days.find((d) => d.theme === selectedTopic);
+  const resources = selectedDay?.resources ?? [];
 
   if (started) {
     return <TutorChat weekTopic={selectedTopic} weekNumber={weekNumber} />;
@@ -92,6 +96,27 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount }: Pr
           </div>
         )}
       </div>
+
+      {/* Prep resources */}
+      {resources.length > 0 && (
+        <div className="space-y-2">
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Before you start</p>
+          <div className="space-y-1.5">
+            {resources.map((r) => (
+              <a
+                key={r.url}
+                href={r.url}
+                target="_blank"
+                rel="noreferrer"
+                className="flex items-center gap-2 px-3 py-2 rounded-lg border border-border bg-card text-sm text-foreground hover:border-primary/50 hover:bg-primary/5 transition-colors"
+              >
+                <ExternalLink className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+                <span className="truncate">{r.title}</span>
+              </a>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Secondary: level */}
       <div className="space-y-2">
