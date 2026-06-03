@@ -1,9 +1,15 @@
 import { createClient } from "@/lib/supabase/server";
 
+export interface PlanDayResource {
+  title: string;
+  url: string;
+}
+
 export interface PlanDay {
   theme: string;
   status: string;
   dayNumber: number;
+  resources: PlanDayResource[];
 }
 
 export interface WeekContext {
@@ -28,7 +34,7 @@ export async function getWeekContext(userId: string): Promise<WeekContext | null
 
   const { data: days } = await supabase
     .from("plan_days")
-    .select("theme, status, day_number")
+    .select("id, theme, status, day_number, tasks(title, resource_url)")
     .eq("plan_id", plan.id)
     .order("day_number");
 
@@ -43,10 +49,18 @@ export async function getWeekContext(userId: string): Promise<WeekContext | null
   return {
     weekTopic: activeDay.theme,
     weekNumber: plan.week_number,
-    days: days.map((d) => ({
-      theme: d.theme,
-      status: d.status,
-      dayNumber: d.day_number,
-    })),
+    days: days.map((d) => {
+      const tasks = Array.isArray(d.tasks) ? d.tasks : [];
+      const resources = tasks
+        .filter((t: { title: string; resource_url: string | null }) => t.resource_url)
+        .slice(0, 3)
+        .map((t: { title: string; resource_url: string }) => ({ title: t.title, url: t.resource_url }));
+      return {
+        theme: d.theme,
+        status: d.status,
+        dayNumber: d.day_number,
+        resources,
+      };
+    }),
   };
 }

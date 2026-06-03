@@ -8,10 +8,20 @@ import { hasMasteryTooltipBeenSeen, markMasteryTooltipSeen } from "@/lib/tutor/m
 
 interface Choice {
   text: string;
+  isCorrect: boolean;
 }
 
 interface DisplayMessage extends Message {
   choices?: Choice[];
+}
+
+function shuffleChoices(raw: { text: string }[]): Choice[] {
+  const tagged: Choice[] = raw.map((c, i) => ({ text: c.text, isCorrect: i === 0 }));
+  for (let i = tagged.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [tagged[i], tagged[j]] = [tagged[j], tagged[i]];
+  }
+  return tagged;
 }
 
 interface Gap {
@@ -111,8 +121,8 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
   const criteria = [projectAssignment.acceptance_criteria[0] ?? projectAssignment.title, ...projectAssignment.acceptance_criteria.slice(1)];
 
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-[--background] z-20 animate-dp-rev-up">
-      <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-20">
+    <div className="fixed inset-0 overflow-y-auto bg-[--background] z-[60] animate-dp-rev-up">
+      <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-[90px] md:pb-20">
         <div className="flex items-center gap-[13px] mb-[26px]">
           <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
             style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 45%, transparent)" }}>
@@ -211,6 +221,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   // stable UUID per session — prevents duplicate DB rows on retry
   const sessionId = useRef(crypto.randomUUID());
   const [showMasteryTooltip, setShowMasteryTooltip] = useState(false);
+  const [pendingAnswer, setPendingAnswer] = useState<Choice | null>(null);
 
   useEffect(() => {
     if (!hasMasteryTooltipBeenSeen()) setShowMasteryTooltip(true);
@@ -248,11 +259,11 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         throw new Error(data.error ?? "Chat failed");
       }
 
-      const { question, choices } = data as { question: string; choices?: Choice[] };
+      const { question, choices: rawChoices } = data as { question: string; choices?: { text: string }[] };
       const assistantMsg: DisplayMessage = {
         role: "assistant",
         content: question,
-        choices: choices?.length ? choices : undefined,
+        choices: rawChoices?.length ? shuffleChoices(rawChoices) : undefined,
       };
 
       cleanHistory.current = [...history, { role: "assistant", content: question }];
@@ -333,11 +344,20 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       {/* Chat column */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Week banner */}
-        <div className="flex items-start gap-2 px-4 sm:px-6 py-[9px] text-primary text-[12px] border-b"
-          style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
-          <Zap size={13} className="shrink-0 mt-[1px]" />
-          <span><b>Week {weekNumber} — {weekTopic}.</b> No formulas first. I want to hear how you actually think about it.</span>
-        </div>
+        {(() => {
+          const questionCount = messages.filter((m) => m.role === "assistant" && m.content).length;
+          return (
+            <div className="flex items-start gap-2 px-4 sm:px-6 py-[9px] text-primary text-[12px] border-b"
+              style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
+              <Zap size={13} className="shrink-0 mt-[1px]" />
+              <span>
+                {questionCount > 0 && <b className="mr-1">Q{questionCount} · </b>}
+                <b>Week {weekNumber} — {weekTopic}.</b>
+                {questionCount === 0 && " No formulas first. I want to hear how you actually think about it."}
+              </span>
+            </div>
+          );
+        })()}
 
         {/* Thread */}
         <div ref={threadRef} className="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -391,18 +411,40 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
                     Pick the answer closest to how you&apos;d put it
                   </p>
                   <div className="flex flex-col gap-[7px]">
-                    {activeChoices.map((c, i) => (
-                      <button
-                        key={i}
-                        onClick={() => sendUserMessage(c.text)}
-                        className="w-full text-left flex items-start gap-[10px] px-[13px] py-[10px] rounded-[9px] border border-[--border] bg-[--card] text-[13.5px] leading-[1.5] text-foreground transition-colors hover:border-primary hover:bg-[color-mix(in_oklab,var(--primary)_5%,transparent)] active:scale-[0.99]"
-                      >
-                        <span className="font-mono text-[11px] font-semibold tracking-[0.06em] text-[--muted-foreground] shrink-0 mt-[2px] w-[16px]">
-                          {String.fromCharCode(65 + i)}
-                        </span>
-                        <span>{c.text}</span>
-                      </button>
-                    ))}
+                    {activeChoices.map((c, i) => {
+                      const isPicked = pendingAnswer?.text === c.text;
+                      const isRevealing = pendingAnswer !== null;
+                      let stateClass = "border-[--border] bg-[--card] text-foreground hover:border-primary hover:bg-[color-mix(in_oklab,var(--primary)_5%,transparent)] active:scale-[0.99]";
+                      if (isRevealing) {
+                        if (c.isCorrect) {
+                          stateClass = "border-emerald-500 bg-[color-mix(in_oklab,var(--emerald)_10%,transparent)] text-[--emerald]";
+                        } else if (isPicked) {
+                          stateClass = "border-amber-500 bg-[color-mix(in_oklab,var(--amber)_10%,transparent)] text-[--amber]";
+                        } else {
+                          stateClass = "border-[--border] bg-[--card] text-foreground opacity-40";
+                        }
+                      }
+                      return (
+                        <button
+                          key={i}
+                          onClick={() => {
+                            if (isRevealing || isSending) return;
+                            setPendingAnswer(c);
+                            setTimeout(() => {
+                              setPendingAnswer(null);
+                              sendUserMessage(c.text);
+                            }, 1500);
+                          }}
+                          disabled={isRevealing || isSending}
+                          className={`w-full text-left flex items-start gap-[10px] px-[13px] py-[10px] rounded-[9px] border text-[13.5px] leading-[1.5] transition-colors ${stateClass}`}
+                        >
+                          <span className="font-mono text-[11px] font-semibold tracking-[0.06em] shrink-0 mt-[2px] w-[16px] text-[--muted-foreground]">
+                            {isRevealing && c.isCorrect ? "✓" : isRevealing && isPicked && !c.isCorrect ? "✗" : String.fromCharCode(65 + i)}
+                          </span>
+                          <span>{c.text}</span>
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -427,25 +469,25 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
                     <Send size={15} /><span className="hidden sm:inline">Send</span>
                   </button>
                 </div>
-                <div className="relative self-start">
+                <div className="flex flex-col gap-[6px]">
+                  <button
+                    onClick={() => { setShowMasteryTooltip(false); markMasteryTooltipSeen(); endSession(); }}
+                    disabled={!canEnd}
+                    className="self-start bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
+                  >
+                    <Flag size={14} />I think I get it
+                  </button>
                   {showMasteryTooltip && (
-                    <div className="absolute bottom-full mb-2 left-0 w-max max-w-[280px] bg-[--card] border border-[--border] rounded-[8px] px-[12px] py-[9px] text-[12px] text-foreground leading-[1.5] shadow-sm z-10">
-                      Tap when you feel confident about the concept. The tutor will move to the next one.
+                    <div className="text-[12px] text-[--muted-foreground] leading-[1.5] max-w-[280px]">
+                      Tap when you feel confident about the concept. The tutor will move to the next one.{" "}
                       <button
                         onClick={() => { markMasteryTooltipSeen(); setShowMasteryTooltip(false); }}
-                        className="block mt-[6px] text-primary text-[11px] font-medium hover:underline"
+                        className="text-primary text-[11px] font-medium hover:underline"
                       >
                         Got it
                       </button>
                     </div>
                   )}
-                  <button
-                    onClick={() => { setShowMasteryTooltip(false); markMasteryTooltipSeen(); endSession(); }}
-                    disabled={!canEnd}
-                    className="bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
-                  >
-                    <Flag size={14} />I think I get it
-                  </button>
                 </div>
               </div>
             </div>
