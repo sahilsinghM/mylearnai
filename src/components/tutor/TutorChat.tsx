@@ -427,25 +427,25 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
                     <Send size={15} /><span className="hidden sm:inline">Send</span>
                   </button>
                 </div>
-                <div className="relative self-start">
+                <div className="flex flex-col gap-[6px]">
+                  <button
+                    onClick={() => { setShowMasteryTooltip(false); markMasteryTooltipSeen(); endSession(); }}
+                    disabled={!canEnd}
+                    className="self-start bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
+                  >
+                    <Flag size={14} />I think I get it
+                  </button>
                   {showMasteryTooltip && (
-                    <div className="absolute bottom-full mb-2 left-0 w-max max-w-[280px] bg-[--card] border border-[--border] rounded-[8px] px-[12px] py-[9px] text-[12px] text-foreground leading-[1.5] shadow-sm z-10">
-                      Tap when you feel confident about the concept. The tutor will move to the next one.
+                    <div className="text-[12px] text-[--muted-foreground] leading-[1.5] max-w-[280px]">
+                      Tap when you feel confident about the concept. The tutor will move to the next one.{" "}
                       <button
                         onClick={() => { markMasteryTooltipSeen(); setShowMasteryTooltip(false); }}
-                        className="block mt-[6px] text-primary text-[11px] font-medium hover:underline"
+                        className="text-primary text-[11px] font-medium hover:underline"
                       >
                         Got it
                       </button>
                     </div>
                   )}
-                  <button
-                    onClick={() => { setShowMasteryTooltip(false); markMasteryTooltipSeen(); endSession(); }}
-                    disabled={!canEnd}
-                    className="bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
-                  >
-                    <Flag size={14} />I think I get it
-                  </button>
                 </div>
               </div>
             </div>
