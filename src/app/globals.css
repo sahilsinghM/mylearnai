@@ -6,6 +6,9 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-fg-strong: var(--fg-strong);
+  --color-fg-2: var(--fg-2);
+  --color-fg-3: var(--fg-3);
   --color-card: var(--card);
   --color-card-2: var(--card-2);
   --color-card-foreground: var(--card-foreground);
@@ -26,38 +29,103 @@
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
+  --color-phase-1: var(--phase-1);
+  --color-phase-2: var(--phase-2);
+  --color-phase-3: var(--phase-3);
+  --color-phase-4: var(--phase-4);
+  --color-phase-5: var(--phase-5);
+  --color-phase-6: var(--phase-6);
+  --color-phase-7: var(--phase-7);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+  --radius-pill: var(--radius-pill);
 }
 
 :root {
-  --radius: 0.5rem;
-  --background: oklch(0.09 0 0);
+  /* ---- Radii ---- */
+  --radius: 0.5rem;                        /* 8px */
+  --radius-pill: 999px;
+
+  /* ---- Surfaces — charcoal ramp, depth via lightness not shadow ---- */
+  --background: oklch(0.15 0 0);           /* app canvas */
+  --card: oklch(0.19 0 0);                 /* raised surface */
+  --card-2: oklch(0.225 0 0);              /* nested / header strips */
+  --popover: oklch(0.19 0 0);
+
+  /* ---- Foreground text ramp ---- */
   --foreground: oklch(0.95 0 0);
-  --card: oklch(0.12 0 0);
-  --card-2: oklch(0.145 0 0);
+  --fg-strong: oklch(0.95 0 0);
+  --fg-2: oklch(0.82 0 0);                 /* body on cards, secondary copy */
+  --fg-3: oklch(0.78 0 0);                 /* hero subcopy, muted body */
   --card-foreground: oklch(0.95 0 0);
-  --popover: oklch(0.12 0 0);
   --popover-foreground: oklch(0.95 0 0);
+  --muted-foreground: oklch(0.58 0 0);
+
+  /* ---- Brand primary — indigo, the single accent ---- */
   --primary: oklch(0.55 0.2 264);
   --primary-foreground: oklch(0.98 0 0);
-  --secondary: oklch(0.18 0 0);
+  --ring: oklch(0.55 0.2 264);
+
+  /* ---- Neutral interactive fills ---- */
+  --secondary: oklch(0.27 0 0);
   --secondary-foreground: oklch(0.85 0 0);
-  --muted: oklch(0.18 0 0);
-  --muted-foreground: oklch(0.58 0 0);
-  --accent: oklch(0.18 0 0);
+  --muted: oklch(0.27 0 0);
+  --accent: oklch(0.27 0 0);
   --accent-foreground: oklch(0.85 0 0);
+  --input: oklch(0.27 0 0);
+  --border: oklch(0.32 0 0);
+
+  /* ---- Semantic status ---- */
+  --emerald: oklch(0.74 0.15 155);
+  --amber: oklch(0.78 0.14 78);
   --destructive: oklch(0.62 0.21 25);
   --destructive-foreground: oklch(0.98 0 0);
-  --amber: oklch(0.78 0.14 78);
-  --emerald: oklch(0.74 0.15 155);
-  --border: oklch(0.22 0 0);
-  --input: oklch(0.18 0 0);
-  --ring: oklch(0.55 0.2 264);
+
+  /* ---- Curriculum phase hues — roadmap graph only ---- */
+  --phase-1: oklch(0.72 0.14 220);   /* Foundations   — blue    */
+  --phase-2: oklch(0.72 0.14 155);   /* Classical ML  — green   */
+  --phase-3: oklch(0.72 0.14 264);   /* Deep Learning — violet  */
+  --phase-4: oklch(0.72 0.14 305);   /* Transformers  — magenta */
+  --phase-5: oklch(0.72 0.14 340);   /* LLMs          — rose    */
+  --phase-6: oklch(0.72 0.14 50);    /* Agents & RAG  — yellow  */
+  --phase-7: oklch(0.72 0.14 25);    /* Production    — orange  */
+
+  /* ---- Elevation — borders do the structural work, shadows for floating ---- */
+  --shadow-hairline: 0 1px 0 color-mix(in oklab, var(--border) 50%, transparent);
+  --shadow-control:  0 2px 8px color-mix(in oklab, var(--foreground) 30%, transparent);
+  --shadow-panel:   -8px 0 24px color-mix(in oklab, var(--foreground) 16%, transparent);
+  --shadow-banner:   0 4px 16px color-mix(in oklab, var(--foreground) 30%, transparent);
+
+  /* ---- Motion ---- */
+  --ease-out:   cubic-bezier(0.2, 0.7, 0.2, 1);
+  --ease-pop:   cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-stamp: cubic-bezier(0.2, 1.2, 0.3, 1);
+  --dur-fast:  0.14s;
+  --dur-base:  0.32s;
+  --dur-slow:  0.45s;
+
+  /* ---- Type tokens ---- */
+  --type-hero-size:     clamp(2.25rem, 5vw, 3rem);
+  --type-hero-weight:   700;
+  --type-hero-tracking: -0.02em;
+  --type-hero-leading:  1.1;
+  --type-h2-size:       1.25rem;
+  --type-h2-weight:     600;
+  --type-h2-tracking:   -0.02em;
+  --type-h3-size:       1rem;
+  --type-h3-weight:     600;
+  --type-h3-tracking:   -0.01em;
+  --type-body-size:     0.875rem;
+  --type-body-leading:  1.55;
+  --type-sm-size:       0.8125rem;
+  --type-xs-size:       0.75rem;
+  --type-eyebrow-size:      0.625rem;
+  --type-eyebrow-tracking:  0.1em;
+  --type-eyebrow-transform: uppercase;
 }
 
 body {
@@ -72,30 +140,45 @@ body {
   border-color: var(--border);
 }
 
-/* Transform-only entrance animations — opacity stays 1 so paused animations don't hide content */
-@keyframes dp-rise { from { transform: translateY(9px); } to { transform: none; } }
-@keyframes dp-pop { from { transform: scale(0.94) translateY(6px); } to { transform: none; } }
-@keyframes dp-rev-up { from { transform: translateY(12px); opacity: 0; } to { transform: none; opacity: 1; } }
-@keyframes dp-stamp { 0% { transform: scale(1.5) rotate(-12deg); } 100% { transform: none; } }
+/* Mono eyebrow — <span class="eyebrow">MASTER NODE</span> */
+.eyebrow {
+  font-family: var(--font-mono), ui-monospace, monospace;
+  font-size: var(--type-eyebrow-size);
+  letter-spacing: var(--type-eyebrow-tracking);
+  text-transform: var(--type-eyebrow-transform);
+  color: var(--primary);
+}
+
+/* Transform-only entrance animations.
+   Opacity stays at 1 so paused animations / prefers-reduced-motion / print
+   never hide content. */
+@keyframes dp-rise     { from { transform: translateY(9px); }  to { transform: none; } }
+@keyframes dp-pop      { from { transform: scale(0.94) translateY(6px); } to { transform: none; } }
+@keyframes dp-rev-up   { from { transform: translateY(12px); } to { transform: none; } }
+@keyframes dp-stamp    { 0% { transform: scale(1.5) rotate(-12deg); } 100% { transform: none; } }
 @keyframes dp-slide-in { from { transform: translateX(24px); } to { transform: none; } }
-@keyframes dp-spin { to { transform: rotate(360deg); } }
-@keyframes dp-blink { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 0.9; } }
+@keyframes dp-spin     { to { transform: rotate(360deg); } }
+@keyframes dp-blink    { 0%, 60%, 100% { opacity: 0.25; } 30% { opacity: 0.9; } }
 @keyframes dp-pulse {
-  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--emerald) 55%, transparent); }
-  70% { box-shadow: 0 0 0 7px transparent; }
+  0%   { box-shadow: 0 0 0 0 color-mix(in oklab, var(--emerald) 55%, transparent); }
+  70%  { box-shadow: 0 0 0 7px transparent; }
   100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+.animate-dp-rise     { animation: dp-rise 0.32s var(--ease-out) both; }
+.animate-dp-pop      { animation: dp-pop 0.34s var(--ease-pop) both; }
+.animate-dp-rev-up   { animation: dp-rev-up 0.4s var(--ease-out) both; }
+.animate-dp-stamp    { animation: dp-stamp 0.5s var(--ease-stamp) both; }
+.animate-dp-slide-in { animation: dp-slide-in 0.45s var(--ease-out) both; }
+.animate-dp-spin     { animation: dp-spin 0.8s linear infinite; }
+.animate-dp-blink    { animation: dp-blink 1.2s infinite; }
+.animate-dp-pulse    { animation: dp-pulse 2s infinite; }
+
+@media (prefers-reduced-motion: reduce) {
+  [class*="animate-dp-"] { animation: none !important; }
 }
 
 /* iOS safe area support for bottom nav */
 .safe-area-bottom {
   padding-bottom: max(8px, env(safe-area-inset-bottom));
 }
-
-.animate-dp-rise { animation: dp-rise 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.animate-dp-pop { animation: dp-pop 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
-.animate-dp-rev-up { animation: dp-rev-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.animate-dp-stamp { animation: dp-stamp 0.5s cubic-bezier(0.2, 1.2, 0.3, 1) both; }
-.animate-dp-slide-in { animation: dp-slide-in 0.45s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.animate-dp-spin { animation: dp-spin 0.8s linear infinite; }
-.animate-dp-blink { animation: dp-blink 1.2s infinite; }
-.animate-dp-pulse { animation: dp-pulse 2s infinite; }

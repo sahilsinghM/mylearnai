@@ -16,10 +16,10 @@ interface Props {
 }
 
 const TYPE_COLORS: Record<Task["type"], string> = {
-  study: "bg-blue-900/40 text-blue-400",
-  build: "bg-violet-900/40 text-violet-400",
-  review: "bg-zinc-800 text-zinc-400",
-  exercise: "bg-amber-900/40 text-amber-400",
+  study:    "bg-[oklch(0.3_0.08_264/0.4)] text-[oklch(0.7_0.12_264)]",
+  build:    "bg-[oklch(0.3_0.1_305/0.4)] text-[oklch(0.72_0.13_305)]",
+  review:   "bg-secondary text-muted-foreground",
+  exercise: "bg-[oklch(0.35_0.08_78/0.4)] text-amber",
 };
 
 export function TaskItem({ task, why, compact = false, onStatusChange }: Props) {
@@ -100,7 +100,7 @@ export function TaskItem({ task, why, compact = false, onStatusChange }: Props) 
         )}
 
         {!compact && why && (
-          <p className="text-xs text-zinc-500 italic border-l-2 border-zinc-700 pl-2">{why}</p>
+          <p className="text-xs text-muted-foreground italic border-l-2 border-border pl-2">{why}</p>
         )}
 
         {!compact && task.resourceUrl && (
@@ -145,7 +145,7 @@ export function TaskItem({ task, why, compact = false, onStatusChange }: Props) 
                 onClick={handleComplete}
                 disabled={loading}
                 title="Mark complete"
-                className="p-1.5 rounded hover:bg-emerald-900/40 hover:text-emerald-400 text-muted-foreground transition-colors"
+                className="p-1.5 rounded hover:bg-[color-mix(in_oklab,var(--emerald)_15%,transparent)] hover:text-emerald text-muted-foreground transition-colors"
               >
                 <Check className="h-3.5 w-3.5" />
               </button>
@@ -153,7 +153,7 @@ export function TaskItem({ task, why, compact = false, onStatusChange }: Props) 
                 onClick={() => handleAction("skipped")}
                 disabled={loading}
                 title="Skip"
-                className="p-1.5 rounded hover:bg-zinc-700 hover:text-zinc-300 text-muted-foreground transition-colors"
+                className="p-1.5 rounded hover:bg-accent hover:text-foreground text-muted-foreground transition-colors"
               >
                 <SkipForward className="h-3.5 w-3.5" />
               </button>
@@ -161,7 +161,7 @@ export function TaskItem({ task, why, compact = false, onStatusChange }: Props) 
                 onClick={() => handleAction("failed")}
                 disabled={loading}
                 title="Mark as failed"
-                className="p-1.5 rounded hover:bg-red-900/40 hover:text-red-400 text-muted-foreground transition-colors"
+                className="p-1.5 rounded hover:bg-[color-mix(in_oklab,var(--destructive)_15%,transparent)] hover:text-destructive text-muted-foreground transition-colors"
               >
                 <X className="h-3.5 w-3.5" />
               </button>

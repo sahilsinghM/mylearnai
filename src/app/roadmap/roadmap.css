@@ -363,13 +363,15 @@
   bottom: 18px;
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 9px 12px;
+  border-radius: 999px;
+  padding: 7px 12px;
   display: flex;
   flex-direction: row;
-  gap: 14px;
+  flex-wrap: wrap;
+  gap: 4px 6px;
   align-items: center;
   z-index: 10;
+  box-shadow: var(--shadow-hairline);
 }
 
 .mr-legend-item {
@@ -569,8 +571,30 @@
 .mr-depth-item > div {
   display: flex;
   justify-content: space-between;
+  align-items: center;
   text-transform: capitalize;
   font-size: 12px;
+  gap: 10px;
+}
+
+/* 4-segment depth indicator bar */
+.mr-depth-bar {
+  display: flex;
+  gap: 3px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.mr-depth-seg {
+  width: 18px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--phase, var(--primary));
+  opacity: 0.25;
+}
+
+.mr-depth-seg.filled {
+  opacity: 1;
 }
 
 .mr-depth-item p,

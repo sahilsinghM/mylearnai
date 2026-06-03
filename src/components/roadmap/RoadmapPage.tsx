@@ -80,7 +80,12 @@ function NodeDetailsPanel({
             <div key={depth} className="mr-depth-item">
               <div>
                 <strong>{depth}</strong>
-                <span>{node.hours[index]}h</span>
+                <div className="mr-depth-bar">
+                  {[0, 1, 2, 3].map((seg) => (
+                    <div key={seg} className={`mr-depth-seg${seg <= index ? " filled" : ""}`} />
+                  ))}
+                </div>
+                <span className="font-mono text-[10px] text-muted-foreground">{node.hours[index]}h</span>
               </div>
               <p>{depthDescription(node, depth)}</p>
             </div>
@@ -389,12 +394,12 @@ export function RoadmapPage({ data }: Props) {
 
         {/* Banner */}
         {bannerOpen && (
-          <div className="mr-banner">
+          <div className="mr-banner animate-dp-rev-up">
+            <span className="w-2 h-2 rounded-full bg-[var(--emerald)] shrink-0 animate-dp-pulse" />
             <div className="mr-banner-content">
-              <div className="mr-banner-eyebrow">Try it</div>
               <span>
-                Click any node to see its four depth levels — or{" "}
-                <strong>let the agent pick</strong> for your goal.
+                Click any node for depth levels —{" "}
+                <strong>or let the agent choose</strong> for your goal.
               </span>
             </div>
             <Link href="/sign-up?from=roadmap" className="mr-banner-primary-btn">

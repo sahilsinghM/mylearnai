@@ -78,13 +78,55 @@ function GapRail({ gaps }: { gaps: Gap[] }) {
 }
 
 // ---------- Analyzing overlay ----------
+const ANALYZE_STEPS = [
+  "Re-reading the transcript",
+  "Locating the gaps",
+  "Compiling the proof",
+];
+
 function AnalyzingOverlay({ step }: { step: string }) {
+  const activeIdx = ANALYZE_STEPS.indexOf(step);
+
   return (
-    <div className="absolute inset-0 flex items-center justify-center z-30" style={{ background: "color-mix(in oklab, var(--background) 80%, transparent)", backdropFilter: "blur(6px)" }}>
-      <div className="text-center">
-        <div className="w-[54px] h-[54px] rounded-full border-2 border-[--border] border-t-primary mx-auto mb-4 animate-dp-spin" />
-        <div className="text-[14px] font-semibold">Analysing your session</div>
-        <div className="text-[12px] text-[--muted-foreground] mt-[6px] font-mono min-h-4">{step}</div>
+    <div
+      className="absolute inset-0 flex items-center justify-center z-30"
+      style={{ background: "color-mix(in oklab, var(--background) 80%, transparent)", backdropFilter: "blur(6px)" }}
+    >
+      <div className="bg-[--card] border border-[--border] rounded-[12px] p-[22px_22px_20px] min-w-[280px] max-w-[380px] shadow-[var(--shadow-hairline)]">
+        {/* Header */}
+        <div className="flex items-center gap-[10px] mb-[14px]">
+          <div className="w-4 h-4 rounded-full border-2 border-[color-mix(in_oklab,var(--primary)_30%,var(--border))] border-t-primary animate-dp-spin shrink-0" />
+          <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">
+            analyzing session
+          </span>
+        </div>
+
+        {/* Steps */}
+        <div className="flex flex-col gap-[10px]">
+          {ANALYZE_STEPS.map((s, i) => {
+            const isDone = activeIdx > i;
+            const isActive = activeIdx === i;
+            return (
+              <div
+                key={s}
+                className={`flex items-center gap-[10px] text-[13px] ${
+                  isDone ? "text-[--muted-foreground]" : isActive ? "text-[--foreground]" : "text-[oklch(0.38_0_0)]"
+                }`}
+              >
+                {isDone ? (
+                  <svg className="w-[14px] h-[14px] shrink-0 text-[--emerald]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M20 6 9 17l-5-5" />
+                  </svg>
+                ) : (
+                  <svg className="w-[14px] h-[14px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="9" />
+                  </svg>
+                )}
+                {s}
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -365,13 +407,13 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
             {messages.map((m, i) => (
               <div key={`${m.role}-${i}`} className={`flex animate-dp-rise ${m.role === "user" ? "justify-end" : ""}`}>
                 {m.role === "assistant" ? (
-                  <div className="max-w-[80%]">
-                    <div className="font-mono text-[10px] tracking-[0.08em] uppercase text-[--muted-foreground] mb-1">Mentor</div>
-                    <div className="rounded-[12px] rounded-bl-[4px] px-[15px] py-[11px] text-[14px] leading-[1.55] whitespace-pre-wrap break-words bg-[--muted] border border-[--border]">
+                  <div className="max-w-[85%]">
+                    <div className="font-mono text-[9.5px] tracking-[0.08em] uppercase text-[--muted-foreground] mb-[5px]">Claude · asks, doesn&apos;t answer</div>
+                    <div className="rounded-[12px] rounded-bl-[3px] px-[14px] py-[12px] text-[13.5px] leading-[1.55] whitespace-pre-wrap break-words bg-[--card] border border-[--border] text-[oklch(0.82_0_0)]">
                       {m.content || (isSending && i === messages.length - 1 ? (
                         <span className="inline-flex gap-1 items-center py-0.5">
                           {[0, 1, 2].map((k) => (
-                            <span key={k} className="w-[6px] h-[6px] rounded-full bg-[--muted-foreground] opacity-50 animate-dp-blink"
+                            <span key={k} className="w-[5px] h-[5px] rounded-full bg-[--muted-foreground] animate-dp-blink"
                               style={{ animationDelay: `${k * 0.2}s` }} />
                           ))}
                         </span>
@@ -379,8 +421,11 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
                     </div>
                   </div>
                 ) : (
-                  <div className="max-w-[80%] rounded-[12px] rounded-br-[4px] px-[15px] py-[11px] text-[14px] leading-[1.55] whitespace-pre-wrap break-words bg-primary text-primary-foreground">
-                    {m.content}
+                  <div className="max-w-[85%]">
+                    <div className="font-mono text-[9.5px] tracking-[0.08em] uppercase text-[--muted-foreground] mb-[5px] text-right">You</div>
+                    <div className="rounded-[12px] rounded-br-[3px] px-[14px] py-[12px] text-[13.5px] leading-[1.55] whitespace-pre-wrap break-words bg-[color-mix(in_oklab,var(--primary)_10%,var(--card))] border border-[color-mix(in_oklab,var(--primary)_20%,var(--border))]">
+                      {m.content}
+                    </div>
                   </div>
                 )}
               </div>
