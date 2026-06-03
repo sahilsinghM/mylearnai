@@ -111,8 +111,8 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
   const criteria = [projectAssignment.acceptance_criteria[0] ?? projectAssignment.title, ...projectAssignment.acceptance_criteria.slice(1)];
 
   return (
-    <div className="absolute inset-0 overflow-y-auto bg-[--background] z-20 animate-dp-rev-up">
-      <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-20">
+    <div className="fixed inset-0 overflow-y-auto bg-[--background] z-[60] animate-dp-rev-up">
+      <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-[90px] md:pb-20">
         <div className="flex items-center gap-[13px] mb-[26px]">
           <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
             style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 45%, transparent)" }}>
