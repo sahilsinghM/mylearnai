@@ -4,6 +4,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Zap, Send, Flag, Check, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
 import type { Message, TutorSessionResult } from "@/types/tutor";
+import { hasMasteryTooltipBeenSeen, markMasteryTooltipSeen } from "@/lib/tutor/masteryTooltip";
 
 interface Choice {
   text: string;
@@ -207,6 +208,13 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   // clean history only contains {role, content} — no choices — for API calls
   const cleanHistory = useRef<Message[]>([]);
   const didBootstrap = useRef(false);
+  // stable UUID per session — prevents duplicate DB rows on retry
+  const sessionId = useRef(crypto.randomUUID());
+  const [showMasteryTooltip, setShowMasteryTooltip] = useState(false);
+
+  useEffect(() => {
+    if (!hasMasteryTooltipBeenSeen()) setShowMasteryTooltip(true);
+  }, []);
 
   const scrollDown = useCallback(() => {
     const el = threadRef.current;
@@ -290,7 +298,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       const res = await fetch("/api/tutor/close-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationHistory: cleanHistory.current }),
+        body: JSON.stringify({ conversationHistory: cleanHistory.current, weekTopic, sessionId: sessionId.current }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error ?? "Couldn't generate your project — try again");
@@ -307,6 +315,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   function restart() {
     setMessages([]); setGaps([]); setInput(""); setResult(null); setError(null);
     setPhase("chatting"); cleanHistory.current = []; didBootstrap.current = false;
+    sessionId.current = crypto.randomUUID();
     setTimeout(() => { didBootstrap.current = true; fetchAssistant([]); }, 60);
   }
 
@@ -416,13 +425,26 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
                 >
                   <Send size={15} />Send
                 </button>
-                <button
-                  onClick={endSession}
-                  disabled={!canEnd}
-                  className="bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
-                >
-                  <Flag size={14} />I think I get it
-                </button>
+                <div className="relative">
+                  {showMasteryTooltip && (
+                    <div className="absolute bottom-full mb-2 left-0 w-max max-w-[280px] bg-[--card] border border-[--border] rounded-[8px] px-[12px] py-[9px] text-[12px] text-foreground leading-[1.5] shadow-sm z-10">
+                      Tap when you feel confident about the concept. The tutor will move to the next one.
+                      <button
+                        onClick={() => { markMasteryTooltipSeen(); setShowMasteryTooltip(false); }}
+                        className="block mt-[6px] text-primary text-[11px] font-medium hover:underline"
+                      >
+                        Got it
+                      </button>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => { setShowMasteryTooltip(false); markMasteryTooltipSeen(); endSession(); }}
+                    disabled={!canEnd}
+                    className="bg-transparent border border-[--border] text-[--muted-foreground] rounded-[8px] px-[14px] py-[9px] text-[13px] font-medium whitespace-nowrap inline-flex items-center gap-[7px] transition-[color,border-color] hover:text-foreground hover:border-[color-mix(in_oklab,var(--primary)_50%,var(--border))] disabled:opacity-45"
+                  >
+                    <Flag size={14} />I think I get it
+                  </button>
+                </div>
               </div>
             </div>
           </div>

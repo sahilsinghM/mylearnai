@@ -1,8 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { TopBar } from "@/components/layout/TopBar";
 import { TopicPicker } from "@/components/tutor/TopicPicker";
+import { MigrationBanner } from "@/components/tutor/MigrationBanner";
 import { getWeekContext } from "@/lib/tutor/context";
-import Link from "next/link";
 import { redirect } from "next/navigation";
 
 export default async function TutorPage() {
@@ -16,15 +16,12 @@ export default async function TutorPage() {
     return (
       <div>
         <TopBar title="Tutor" />
-        <div className="p-6">
-          <p className="text-sm text-muted-foreground">
-            No active plan found.{" "}
-            <Link href="/plan" className="text-primary underline underline-offset-2">
-              Generate your plan
-            </Link>{" "}
-            to start a session.
-          </p>
-        </div>
+        <TopicPicker
+          defaultTopic=""
+          weekNumber={1}
+          days={[]}
+          sessionCount={0}
+        />
       </div>
     );
   }
@@ -46,6 +43,7 @@ export default async function TutorPage() {
         title="Tutor"
         subtitle={`Week ${context.weekNumber}`}
       />
+      <MigrationBanner />
       <TopicPicker
         defaultTopic={context.weekTopic}
         weekNumber={context.weekNumber}

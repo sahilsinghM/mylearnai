@@ -204,9 +204,19 @@ Return ONLY this JSON schema (no prose, no markdown):
 ${JSON.stringify(planJsonSchema(projectName), null, 2)}`;
 }
 
+export function sanitizeTopicForPrompt(topic: string): string {
+  return topic.replace(/[\n\r<>]/g, " ").trim().slice(0, 200);
+}
+
+export function escapeTranscriptContent(content: string): string {
+  return content.replace(/[<>]/g, "");
+}
+
 export function buildTutorSystemPrompt(weekTopic: string, weekNumber: number): string {
   return `You are a rigorous mentor tutoring an engineer on: ${weekTopic}.
 Context: They are on Week ${weekNumber} of their AI/ML learning path.
+
+OPENING MESSAGE REQUIREMENT: In your very first question, end with one sentence telling the user about the "I think I get it" button below the chat — e.g. "Tap 'I think I get it' when you feel confident about a concept and want to move on."
 
 RESPONSE FORMAT — always output valid JSON, nothing else:
 {

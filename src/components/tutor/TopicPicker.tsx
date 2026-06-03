@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { TutorChat } from "./TutorChat";
 import type { PlanDay } from "@/lib/tutor/context";
+import { canStartSession, type Level } from "@/lib/tutor/presession";
 
 interface Props {
   defaultTopic: string;
@@ -19,58 +20,109 @@ const STATUS_LABEL: Record<string, string> = {
   failed: "Failed",
 };
 
+const LEVELS: { value: Level; label: string }[] = [
+  { value: "beginner", label: "Beginner" },
+  { value: "some",     label: "Some experience" },
+  { value: "fluent",   label: "Comfortable" },
+];
+
 export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount }: Props) {
   const [selectedTopic, setSelectedTopic] = useState(defaultTopic);
+  const [selectedLevel, setSelectedLevel] = useState<Level>("");
   const [started, setStarted] = useState(false);
 
   if (started) {
     return <TutorChat weekTopic={selectedTopic} weekNumber={weekNumber} />;
   }
 
+  const noPlan = days.length === 0;
+  const ready = canStartSession({ topic: selectedTopic, level: selectedLevel });
+
+  function start() {
+    if (ready) setStarted(true);
+  }
+
   return (
-    <div className="p-6 max-w-xl space-y-5">
-      <div>
-        <p className="text-sm font-medium text-foreground mb-1">Choose a topic to study</p>
-        <p className="text-xs text-muted-foreground">
-          {sessionCount === 0
-            ? "Pick any day from your plan — the tutor will grill you on it."
-            : "Suggested: your active day. Pick any you want to revisit."}
+    <div className="p-6 max-w-xl space-y-6">
+
+      {/* Primary: topic */}
+      <div className="space-y-2">
+        <p className="text-[15px] font-semibold text-foreground tracking-tight">
+          What do you want to learn?
         </p>
+        {noPlan ? (
+          <input
+            type="text"
+            value={selectedTopic}
+            onChange={(e) => setSelectedTopic(e.target.value)}
+            onKeyDown={(e) => { if (e.key === "Enter") start(); }}
+            placeholder="e.g. Gradient descent, Transformers, Backpropagation…"
+            className="w-full bg-background border border-input text-foreground rounded-lg px-4 py-2.5 text-sm outline-none transition-[border-color,box-shadow] placeholder:text-muted-foreground focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)]"
+            autoFocus
+          />
+        ) : (
+          <div className="space-y-1.5">
+            {days.map((day) => {
+              const isSelected = selectedTopic === day.theme;
+              const label = STATUS_LABEL[day.status] ?? "";
+              return (
+                <button
+                  key={day.dayNumber}
+                  onClick={() => setSelectedTopic(day.theme)}
+                  className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition-colors ${
+                    isSelected
+                      ? "border-primary bg-primary/5 text-foreground"
+                      : "border-border bg-card text-foreground hover:bg-muted/40"
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="flex-1 min-w-0 truncate">
+                      <span className="text-xs text-muted-foreground mr-2">Day {day.dayNumber}</span>
+                      {day.theme}
+                    </span>
+                    {label && (
+                      <span className={`text-xs shrink-0 ${day.status === "completed" ? "text-emerald-600" : "text-muted-foreground"}`}>
+                        {label}
+                      </span>
+                    )}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        )}
       </div>
 
-      <div className="space-y-1.5">
-        {days.map((day) => {
-          const isSelected = selectedTopic === day.theme;
-          const label = STATUS_LABEL[day.status] ?? "";
-          return (
-            <button
-              key={day.dayNumber}
-              onClick={() => setSelectedTopic(day.theme)}
-              className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition-colors ${
-                isSelected
-                  ? "border-primary bg-primary/5 text-foreground"
-                  : "border-border bg-card text-foreground hover:bg-muted/40"
-              }`}
-            >
-              <div className="flex items-center justify-between gap-3">
-                <span className="flex-1 min-w-0 truncate">
-                  <span className="text-xs text-muted-foreground mr-2">Day {day.dayNumber}</span>
-                  {day.theme}
-                </span>
-                {label && (
-                  <span className={`text-xs shrink-0 ${day.status === "completed" ? "text-emerald-600" : "text-muted-foreground"}`}>
-                    {label}
-                  </span>
-                )}
-              </div>
-            </button>
-          );
-        })}
+      {/* Secondary: level */}
+      <div className="space-y-2">
+        <p className="text-sm font-medium text-muted-foreground">
+          What&apos;s your experience level?
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {LEVELS.map(({ value, label }) => {
+            const active = selectedLevel === value;
+            return (
+              <button
+                key={value}
+                onClick={() => setSelectedLevel(active ? "" : value)}
+                className={`min-h-[44px] px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                  active
+                    ? "bg-primary text-primary-foreground border-primary"
+                    : "bg-transparent text-foreground border-input hover:border-primary/50"
+                }`}
+              >
+                {label}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
+      {/* CTA */}
       <button
-        onClick={() => setStarted(true)}
-        className="px-5 py-2 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+        onClick={start}
+        disabled={!ready}
+        className="w-full sm:w-auto px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-45"
       >
         Start session
       </button>
