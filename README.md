@@ -1,36 +1,67 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DeepPath
 
-## Getting Started
+A personalized AI/ML curriculum for engineers who want to reach frontier labs. DeepPath builds a 7-phase learning roadmap based on your background and goal, adapts it as you learn, and ends every Socratic tutoring session with a proof artifact — a GitHub-ready project spec and LinkedIn post draft.
 
-First, run the development server:
+**Tech:** Next.js 16 · Supabase · Anthropic SDK (claude-sonnet-4-6) · TypeScript · Tailwind · Vitest
+
+## Quick start
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
+# Install dependencies
+bun install
+
+# Copy env vars and fill in values (see docs/howto-local-setup.md)
+cp .env.example .env.local
+
+# Run database migrations
+supabase db push
+
+# Start dev server
 bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Visit [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Documentation
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Document | What it covers |
+|----------|---------------|
+| [docs/architecture.md](docs/architecture.md) | System overview, data flow, key design decisions |
+| [docs/reference-api.md](docs/reference-api.md) | All API routes — endpoints, request/response shapes |
+| [docs/reference-database.md](docs/reference-database.md) | Database tables, columns, RLS policies, migrations |
+| [docs/howto-local-setup.md](docs/howto-local-setup.md) | Getting a local dev environment running |
+| [docs/howto-add-roadmap-node.md](docs/howto-add-roadmap-node.md) | Adding or editing nodes in the Master Roadmap |
 
-## Learn More
+## Project structure
 
-To learn more about Next.js, take a look at the following resources:
+```
+src/
+  app/
+    api/              Route handlers (onboarding, tutor, plan, roadmap, proof)
+    (app)/            Authenticated pages (dashboard, tutor, project)
+    (auth)/           Sign-in / sign-up pages
+    roadmap/          Public roadmap visualization
+    onboarding/       Onboarding wizard
+  components/         React components by feature
+  lib/
+    anthropic/        Claude client, prompt builders, response schemas
+    roadmap/          Roadmap graph logic, adaptation agent, personalization
+    tutor/            Tutor context, rate limiting, mastery tooltip, migration banner
+    auth/             Public path list, auth utilities
+    supabase/         Supabase client factories
+  types/              Shared TypeScript types
+supabase/migrations/  SQL migrations (run in order 001–006)
+docs/                 Architecture, reference, and how-to documentation
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Running tests
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```bash
+bun test
+```
 
-## Deploy on Vercel
+Tests live in `src/**/__tests__/`. Coverage targets: roadmap logic, adaptation agent, tutor utilities.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Domain glossary
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+See [CONTEXT.md](CONTEXT.md) for definitions of Master Roadmap, Personalized Roadmap, Adaptation Agent, Active Node, Weekly Plan, and other domain terms.
