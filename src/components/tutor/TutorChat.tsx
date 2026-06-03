@@ -112,7 +112,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
 
   return (
     <div className="absolute inset-0 overflow-y-auto bg-[--background] z-20 animate-dp-rev-up">
-      <div className="max-w-[720px] mx-auto px-6 pt-14 pb-20">
+      <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-20">
         <div className="flex items-center gap-[13px] mb-[26px]">
           <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
             style={{ background: "color-mix(in oklab, var(--primary) 14%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 45%, transparent)" }}>
@@ -148,7 +148,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
               </div>
               <div className="px-[22px] pt-[10px] pb-1 flex flex-col gap-[10px]">
                 {gaps.slice(0, 2).map((g, i) => (
-                  <div key={i} className="grid items-center gap-3 animate-dp-rise" style={{ gridTemplateColumns: "1fr auto 1.3fr", animationDelay: `${0.08 * i}s` }}>
+                  <div key={i} className="flex flex-col sm:grid items-start sm:items-center gap-2 sm:gap-3 animate-dp-rise" style={{ gridTemplateColumns: "1fr auto 1.3fr", animationDelay: `${0.08 * i}s` }}>
                     <div className="flex flex-col gap-1">
                       <span className={`self-start font-mono text-[9.5px] tracking-[0.06em] uppercase font-semibold px-[6px] py-[2px] rounded-[5px]
                         ${g.severity === "high" ? "text-destructive bg-[color-mix(in_oklab,var(--destructive)_16%,transparent)]"
@@ -158,7 +158,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
                       </span>
                       <span className="text-[13px] font-medium">{g.concept}</span>
                     </div>
-                    <ArrowRight size={16} className="text-[--muted-foreground]" />
+                    <ArrowRight size={16} className="hidden sm:block text-[--muted-foreground]" />
                     <div className="text-[12.5px] leading-[1.5] pl-[11px] border-l-2 border-primary">
                       {projectAssignment.acceptance_criteria[i] ?? g.evidence}
                     </div>
@@ -174,7 +174,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
           <Checklist items={criteria} />
         </div>
 
-        <div className="flex gap-3 mt-[26px] items-center">
+        <div className="flex flex-wrap gap-3 mt-[26px] items-center">
           <Link
             href="/proof"
             className="inline-flex items-center gap-2 bg-primary text-primary-foreground border-0 rounded-[9px] px-[18px] py-[11px] text-[14px] font-semibold whitespace-nowrap hover:brightness-110 transition-[filter]"
@@ -187,7 +187,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
           >
             Run another session
           </button>
-          <span className="ml-auto text-[11.5px] text-[--muted-foreground] font-mono whitespace-nowrap">Proof &gt; praise</span>
+          <span className="sm:ml-auto text-[11.5px] text-[--muted-foreground] font-mono whitespace-nowrap">Proof &gt; praise</span>
         </div>
       </div>
     </div>
@@ -333,14 +333,14 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       {/* Chat column */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Week banner */}
-        <div className="flex items-center gap-2 px-6 py-[9px] text-primary text-[12px] border-b"
+        <div className="flex items-start gap-2 px-4 sm:px-6 py-[9px] text-primary text-[12px] border-b"
           style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
-          <Zap size={13} />
+          <Zap size={13} className="shrink-0 mt-[1px]" />
           <span><b>Week {weekNumber} — {weekTopic}.</b> No formulas first. I want to hear how you actually think about it.</span>
         </div>
 
         {/* Thread */}
-        <div ref={threadRef} className="flex-1 overflow-y-auto p-6">
+        <div ref={threadRef} className="flex-1 overflow-y-auto p-4 sm:p-6">
           <div className="max-w-[760px] w-full mx-auto flex flex-col gap-[14px]">
             {messages.map((m, i) => (
               <div key={`${m.role}-${i}`} className={`flex animate-dp-rise ${m.role === "user" ? "justify-end" : ""}`}>
@@ -370,7 +370,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
         {/* Error */}
         {error && (
-          <div className="px-6 pb-2 flex items-center gap-3 max-w-[760px] mx-auto w-full">
+          <div className="px-4 sm:px-6 pb-2 flex items-center gap-3 max-w-[760px] mx-auto w-full">
             <p className="text-sm text-destructive flex-1">{error}</p>
             {phase === "chatting" && !isSending && cleanHistory.current.length > 0 && (
               <button onClick={() => fetchAssistant(cleanHistory.current)} className="text-xs text-[--muted-foreground] underline underline-offset-2 shrink-0 flex items-center gap-1">
@@ -382,7 +382,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
         {/* Composer */}
         {phase === "chatting" && (
-          <div className="border-t border-[--border] px-6 py-[14px]">
+          <div className="border-t border-[--border] px-4 sm:px-6 py-[14px]">
             <div className="max-w-[760px] mx-auto flex flex-col gap-[10px]">
               {/* Answer chips */}
               {activeChoices && (
@@ -408,24 +408,26 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
               )}
 
               {/* Text input row */}
-              <div className="flex gap-[9px] items-center">
-                <input
-                  type="text"
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendUserMessage(input.trim()); } }}
-                  disabled={isSending}
-                  placeholder={activeChoices ? "…or type your own answer" : "Type your answer…"}
-                  className="flex-1 bg-[--background] border border-[--input] text-foreground rounded-[8px] px-[13px] py-[9px] text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-[--muted-foreground] focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)] disabled:opacity-50"
-                />
-                <button
-                  onClick={() => sendUserMessage(input.trim())}
-                  disabled={!input.trim() || isSending}
-                  className="inline-flex items-center justify-center gap-[7px] bg-primary text-primary-foreground border-0 rounded-[8px] px-[15px] py-[9px] text-[14px] font-medium transition-[filter,opacity] hover:brightness-110 disabled:opacity-45"
-                >
-                  <Send size={15} />Send
-                </button>
-                <div className="relative">
+              <div className="flex flex-col gap-[8px]">
+                <div className="flex gap-[9px] items-center">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendUserMessage(input.trim()); } }}
+                    disabled={isSending}
+                    placeholder={activeChoices ? "…or type your own answer" : "Type your answer…"}
+                    className="flex-1 min-w-0 bg-[--background] border border-[--input] text-foreground rounded-[8px] px-[13px] py-[9px] text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-[--muted-foreground] focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)] disabled:opacity-50"
+                  />
+                  <button
+                    onClick={() => sendUserMessage(input.trim())}
+                    disabled={!input.trim() || isSending}
+                    className="shrink-0 inline-flex items-center justify-center gap-[7px] bg-primary text-primary-foreground border-0 rounded-[8px] px-[15px] py-[9px] text-[14px] font-medium transition-[filter,opacity] hover:brightness-110 disabled:opacity-45"
+                  >
+                    <Send size={15} /><span className="hidden sm:inline">Send</span>
+                  </button>
+                </div>
+                <div className="relative self-start">
                   {showMasteryTooltip && (
                     <div className="absolute bottom-full mb-2 left-0 w-max max-w-[280px] bg-[--card] border border-[--border] rounded-[8px] px-[12px] py-[9px] text-[12px] text-foreground leading-[1.5] shadow-sm z-10">
                       Tap when you feel confident about the concept. The tutor will move to the next one.

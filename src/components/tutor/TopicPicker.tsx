@@ -43,7 +43,7 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount }: Pr
   }
 
   return (
-    <div className="p-6 max-w-xl space-y-6">
+    <div className="p-4 sm:p-6 max-w-xl space-y-6">
 
       {/* Primary: topic */}
       <div className="space-y-2">

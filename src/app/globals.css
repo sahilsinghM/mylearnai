@@ -86,6 +86,11 @@ body {
   100% { box-shadow: 0 0 0 0 transparent; }
 }
 
+/* iOS safe area support for bottom nav */
+.safe-area-bottom {
+  padding-bottom: max(8px, env(safe-area-inset-bottom));
+}
+
 .animate-dp-rise { animation: dp-rise 0.32s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
 .animate-dp-pop { animation: dp-pop 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .animate-dp-rev-up { animation: dp-rev-up 0.4s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
