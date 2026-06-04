@@ -5,12 +5,7 @@ import { ExternalLink } from "lucide-react";
 import { TutorChat } from "./TutorChat";
 import type { PlanDay } from "@/lib/tutor/context";
 import { canStartSession, type Level } from "@/lib/tutor/presession";
-
-interface ActiveNodeResource {
-  id: string;
-  title: string;
-  url: string;
-}
+import type { ActiveNodeResource } from "@/lib/tutor/getActiveNodeContext";
 
 interface Props {
   defaultTopic: string;

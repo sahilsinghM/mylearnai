@@ -1,5 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 
+// Cap resources per node to keep PREP phase scannable and prompt size manageable
+const MAX_RESOURCES_PER_NODE = 10;
+
 export interface ActiveNodeResource {
   id: string;
   title: string;
@@ -37,7 +40,8 @@ export async function getActiveNodeContext(userId: string): Promise<ActiveNodeCo
       .select("id, title, url")
       .eq("node_id", activeNodeId)
       .order("depth_level")
-      .limit(10),
+      // Cap resources per node to keep PREP phase scannable and prompt size manageable
+      .limit(MAX_RESOURCES_PER_NODE),
   ]);
 
   if (!node) return null;

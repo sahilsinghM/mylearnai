@@ -5,6 +5,7 @@ import { Zap, Send, Flag, Check, ShieldCheck, RefreshCw } from "lucide-react";
 import type { Message, TutorSessionResult } from "@/types/tutor";
 import { hasMasteryTooltipBeenSeen, markMasteryTooltipSeen } from "@/lib/tutor/masteryTooltip";
 import { shouldEndSession } from "@/lib/tutor/sessionEnd";
+import type { ActiveNodeResource as Resource } from "@/lib/tutor/getActiveNodeContext";
 
 interface Choice {
   text: string;
@@ -44,12 +45,6 @@ interface Gap {
   concept: string;
   severity: "low" | "med" | "high";
   evidence: string;
-}
-
-interface Resource {
-  id: string;
-  title: string;
-  url: string;
 }
 
 interface Props {
@@ -198,7 +193,7 @@ function SessionComplete({ result, weekTopic, weekNumber, onRestart }: {
           </div>
         </div>
 
-        <p className="text-[19px] leading-[1.5] font-medium mb-2" style={{ letterSpacing: "-0.01em" }}>
+        <p className="text-[19px] leading-[1.5] font-medium mb-2 tracking-tight">
           {hadGaps ? (
             <>You can <span className="text-primary">talk</span> about {weekTopic.toLowerCase()}. Here&apos;s the build that turns the wobble into proof.</>
           ) : (
@@ -209,7 +204,7 @@ function SessionComplete({ result, weekTopic, weekNumber, onRestart }: {
         <div className="border border-[--border] rounded-[14px] bg-[--card] overflow-hidden mt-[22px]">
           <div className="px-[22px] py-5 border-b border-[--border]" style={{ background: "linear-gradient(180deg, var(--card-2), var(--card))" }}>
             <div className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">Your proof project</div>
-            <div className="text-[19px] font-[650] mt-[7px] mb-2" style={{ letterSpacing: "-0.01em" }}>{projectAssignment.title}</div>
+            <div className="text-[19px] font-[650] mt-[7px] mb-2 tracking-tight">{projectAssignment.title}</div>
             <p className="text-[13.5px] text-[--muted-foreground] leading-[1.6] m-0">{projectAssignment.description}</p>
           </div>
 
@@ -303,7 +298,7 @@ function PrepPhase({
             <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-[--muted-foreground] mb-[6px]">
               Active node
             </div>
-            <h2 className="text-[22px] font-[650] leading-[1.25]" style={{ letterSpacing: "-0.01em" }}>
+            <h2 className="text-[22px] font-[650] leading-[1.25] tracking-tight">
               {activeNodeTitle}
             </h2>
           </div>
@@ -408,23 +403,27 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
     if (!hasMasteryTooltipBeenSeen()) setShowMasteryTooltip(true);
   }, []);
 
+  // Stable comma-separated resource IDs — used as the effect dep to avoid stale closure
+  const resourceIds = resources.map((r) => r.id).join(",");
+
   // On PREP mount: fetch existing resource completions from Supabase
   useEffect(() => {
-    if (phase !== "PREP" || resources.length === 0) return;
+    if (phase !== "PREP" || !resourceIds) return;
+    const ids = resourceIds.split(",");
     import("@/lib/supabase/client").then(({ createClient }) => {
       const supabase = createClient();
       supabase
         .from("user_resource_completions")
         .select("resource_id")
-        .in("resource_id", resources.map((r) => r.id))
+        .in("resource_id", ids)
         .then(({ data }) => {
           if (data) {
             setCompletedIds(new Set(data.map((row: { resource_id: string }) => row.resource_id)));
           }
         });
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- phase intentionally omitted: only re-fetch when resources change
+  }, [resourceIds]);
 
   const scrollDown = useCallback(() => {
     const el = threadRef.current;
@@ -433,14 +432,22 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
 
   useEffect(() => { scrollDown(); }, [messages, isSending, phase, scrollDown]);
 
-  // Bootstrap: if no resources, skip PREP and go straight to CHAT
+  // Bootstrap: if no resources, skip PREP and go straight to CHAT immediately
+  // Inlined to avoid depending on startSession (which closes over mutable state)
   useEffect(() => {
-    if (phase !== "PREP") return;
-    if (resources.length === 0) {
-      startSession();
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+    if (phase !== "PREP" || resourceIds) return;
+    setMessages([]);
+    setGaps([]);
+    setInput("");
+    setResult(null);
+    setError(null);
+    setRecentAnswers([]);
+    cleanHistory.current = [];
+    sessionId.current = crypto.randomUUID();
+    setPhase("CHAT");
+    fetchAssistant([]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAssistant is stable; resourceIds covers the resources check
+  }, [resourceIds]);
 
   function resetForSession() {
     setMessages([]);
@@ -495,14 +502,16 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       } else {
         await fetch(`/api/resources/completions/${id}`, { method: "DELETE" });
       }
+      setError(null);
     } catch {
-      // Revert on failure
+      // Revert on failure and surface the error
       setCompletedIds((prev) => {
         const next = new Set(prev);
         if (checked) next.delete(id);
         else next.add(id);
         return next;
       });
+      setError("Couldn't save your progress. Please try again.");
     }
   }
 
@@ -636,7 +645,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
   // PREP phase
   if (phase === "PREP") {
     return (
-      <div className="flex flex-1 min-h-0">
+      <div className="flex flex-1 min-h-0 flex-col">
         <PrepPhase
           activeNodeTitle={activeNodeTitle}
           resources={resources}
@@ -648,6 +657,11 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
           onCancelConfirm={() => setShowConfirm(false)}
           isTransitioning={isTransitioning}
         />
+        {error && (
+          <div className="px-4 sm:px-6 pb-4 max-w-[640px] mx-auto w-full">
+            <p className="text-sm text-destructive">{error}</p>
+          </div>
+        )}
       </div>
     );
   }
