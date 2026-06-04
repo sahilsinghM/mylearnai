@@ -93,52 +93,51 @@ function GapRail({ gaps }: { gaps: Gap[] }) {
   );
 }
 
-// ---------- Analyzing overlay ----------
+// ---------- Analyzing inline ----------
 const ANALYZE_STEPS = [
   "Re-reading the transcript",
   "Locating the gaps",
   "Compiling the proof",
 ];
 
-function AnalyzingOverlay({ step }: { step: string }) {
+function AnalyzingInline({ step }: { step: string }) {
   const activeIdx = ANALYZE_STEPS.indexOf(step);
 
   return (
-    <div
-      className="absolute inset-0 flex items-center justify-center z-30"
-      style={{ background: "color-mix(in oklab, var(--background) 80%, transparent)", backdropFilter: "blur(6px)" }}
-    >
-      <div className="bg-[--card] border border-[--border] rounded-[12px] p-[22px_22px_20px] min-w-[280px] max-w-[380px] shadow-[var(--shadow-hairline)]">
-        <div className="flex items-center gap-[10px] mb-[14px]">
-          <div className="w-4 h-4 rounded-full border-2 border-[color-mix(in_oklab,var(--primary)_30%,var(--border))] border-t-primary animate-dp-spin shrink-0" />
-          <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">
-            analyzing session
-          </span>
-        </div>
-        <div className="flex flex-col gap-[10px]">
-          {ANALYZE_STEPS.map((s, i) => {
-            const isDone = activeIdx > i;
-            const isActive = activeIdx === i;
-            return (
-              <div
-                key={s}
-                className={`flex items-center gap-[10px] text-[13px] ${
-                  isDone ? "text-[--muted-foreground]" : isActive ? "text-[--foreground]" : "text-[oklch(0.38_0_0)]"
-                }`}
-              >
-                {isDone ? (
-                  <svg className="w-[14px] h-[14px] shrink-0 text-[--emerald]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M20 6 9 17l-5-5" />
-                  </svg>
-                ) : (
-                  <svg className="w-[14px] h-[14px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="9" />
-                  </svg>
-                )}
-                {s}
-              </div>
-            );
-          })}
+    <div className="border-t border-[--border] px-4 sm:px-6 py-[14px]">
+      <div className="max-w-[760px] mx-auto">
+        <div className="bg-[--card] border border-[--border] rounded-[12px] p-[22px_22px_20px] shadow-[var(--shadow-hairline)]">
+          <div className="flex items-center gap-[10px] mb-[14px]">
+            <div className="w-4 h-4 rounded-full border-2 border-[color-mix(in_oklab,var(--primary)_30%,var(--border))] border-t-primary animate-dp-spin shrink-0" />
+            <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">
+              analyzing session
+            </span>
+          </div>
+          <div className="flex flex-col gap-[10px]">
+            {ANALYZE_STEPS.map((s, i) => {
+              const isDone = activeIdx > i;
+              const isActive = activeIdx === i;
+              return (
+                <div
+                  key={s}
+                  className={`flex items-center gap-[10px] text-[13px] ${
+                    isDone ? "text-[--muted-foreground]" : isActive ? "text-[--foreground]" : "text-[oklch(0.38_0_0)]"
+                  }`}
+                >
+                  {isDone ? (
+                    <svg className="w-[14px] h-[14px] shrink-0 text-[--emerald]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M20 6 9 17l-5-5" />
+                    </svg>
+                  ) : (
+                    <svg className="w-[14px] h-[14px] shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="9" />
+                    </svg>
+                  )}
+                  {s}
+                </div>
+              );
+            })}
+          </div>
         </div>
       </div>
     </div>
@@ -410,11 +409,6 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
     await triggerEndSession(cleanHistory.current);
   }
 
-  // Natural restart: reset to PREP phase (the PREP useEffect will handle the rest)
-  function restart() {
-    setPhase("PREP");
-  }
-
   const questionCount = messages.filter((m) => m.role === "assistant" && m.content).length;
   const hasUserTurn = messages.some((m) => m.role === "user");
   const canEnd = hasUserTurn && phase === "CHAT" && !isSending;
@@ -431,7 +425,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   if (phase === "PROOF_REDIRECT" && result) {
     return (
       <div className="flex flex-1 min-h-0">
-        <SessionComplete result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={restart} />
+        <SessionComplete result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={() => setPhase("PREP")} />
       </div>
     );
   }
@@ -494,6 +488,9 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
             )}
           </div>
         )}
+
+        {/* Analyzing inline state */}
+        {showAnalyzing && <AnalyzingInline step={analyzeStep} />}
 
         {/* Composer */}
         {phase === "CHAT" && !showAnalyzing && (
@@ -592,9 +589,6 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
       {/* Gap rail */}
       <GapRail gaps={gaps} />
-
-      {/* Analyzing overlay */}
-      {showAnalyzing && <AnalyzingOverlay step={analyzeStep} />}
     </div>
   );
 }
