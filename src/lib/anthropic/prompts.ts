@@ -214,7 +214,7 @@ export function escapeTranscriptContent(content: string): string {
 
 export function buildTutorSystemPrompt(weekTopic: string, weekNumber: number, gapConcepts?: string[]): string {
   const gapLine = gapConcepts && gapConcepts.length > 0
-    ? `\nGap areas identified (probe these in upcoming questions): ${gapConcepts.join(", ")}`
+    ? `\n\nGap areas identified (probe these in upcoming questions): ${gapConcepts.join(", ")}`
     : "";
   return `You are a rigorous mentor tutoring an engineer on: ${weekTopic}.${gapLine}
 Context: They are on Week ${weekNumber} of their AI/ML learning path.

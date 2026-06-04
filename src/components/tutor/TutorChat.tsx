@@ -30,6 +30,12 @@ function normalizeChoiceLengths(choices: { text: string }[]): { text: string }[]
   }));
 }
 
+/** Extract a clean concept label from the question text */
+function extractConcept(questionText: string): string {
+  const firstSentence = questionText.split(/[.?]/)[0].trim();
+  return firstSentence.slice(0, 60);
+}
+
 function shuffleChoices(raw: { text: string }[]): Choice[] {
   const normalized = normalizeChoiceLengths(raw);
   // tag correctness before shuffle — first in API array is always correct by system-prompt convention
@@ -566,9 +572,11 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
         // Find the last assistant message content as the concept
         const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
         if (lastAssistant?.content) {
-          const concept = lastAssistant.content.slice(0, 60);
-          updatedGapConcepts = [...gapConcepts, concept];
-          setGapConcepts(updatedGapConcepts);
+          const concept = extractConcept(lastAssistant.content);
+          if (!gapConcepts.includes(concept)) {
+            updatedGapConcepts = [...gapConcepts, concept];
+            setGapConcepts(updatedGapConcepts);
+          }
         }
       }
     }
