@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import Link from "next/link";
-import { Zap, Send, Flag, Check, ShieldCheck, ArrowRight, RefreshCw } from "lucide-react";
+import { Zap, Send, Flag, Check, ShieldCheck, RefreshCw } from "lucide-react";
 import type { Message, TutorSessionResult } from "@/types/tutor";
 import { hasMasteryTooltipBeenSeen, markMasteryTooltipSeen } from "@/lib/tutor/masteryTooltip";
+import { shouldEndSession } from "@/lib/tutor/sessionEnd";
 
 interface Choice {
   text: string;
@@ -15,8 +15,24 @@ interface DisplayMessage extends Message {
   choices?: Choice[];
 }
 
+/** Normalize chip lengths so the correct answer isn't predictable by length alone.
+ *  Truncates all choices to max 80 chars, then caps any choice that is > 1.5×
+ *  the shortest choice length (after the first truncation pass).
+ */
+function normalizeChoiceLengths(choices: { text: string }[]): { text: string }[] {
+  const truncated = choices.map((c) => ({ ...c, text: c.text.slice(0, 80).trimEnd() }));
+  const shortest = Math.min(...truncated.map((c) => c.text.length));
+  const maxAllowed = Math.ceil(shortest * 1.5);
+  return truncated.map((c) => ({
+    ...c,
+    text: c.text.length > maxAllowed ? c.text.slice(0, maxAllowed).trimEnd() + "…" : c.text,
+  }));
+}
+
 function shuffleChoices(raw: { text: string }[]): Choice[] {
-  const tagged: Choice[] = raw.map((c, i) => ({ text: c.text, isCorrect: i === 0 }));
+  const normalized = normalizeChoiceLengths(raw);
+  // tag correctness before shuffle — first in API array is always correct by system-prompt convention
+  const tagged: Choice[] = normalized.map((c, i) => ({ text: c.text, isCorrect: i === 0 }));
   for (let i = tagged.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [tagged[i], tagged[j]] = [tagged[j], tagged[i]];
@@ -93,15 +109,12 @@ function AnalyzingOverlay({ step }: { step: string }) {
       style={{ background: "color-mix(in oklab, var(--background) 80%, transparent)", backdropFilter: "blur(6px)" }}
     >
       <div className="bg-[--card] border border-[--border] rounded-[12px] p-[22px_22px_20px] min-w-[280px] max-w-[380px] shadow-[var(--shadow-hairline)]">
-        {/* Header */}
         <div className="flex items-center gap-[10px] mb-[14px]">
           <div className="w-4 h-4 rounded-full border-2 border-[color-mix(in_oklab,var(--primary)_30%,var(--border))] border-t-primary animate-dp-spin shrink-0" />
           <span className="font-mono text-[10px] tracking-[0.1em] uppercase text-[--muted-foreground]">
             analyzing session
           </span>
         </div>
-
-        {/* Steps */}
         <div className="flex flex-col gap-[10px]">
           {ANALYZE_STEPS.map((s, i) => {
             const isDone = activeIdx > i;
@@ -154,8 +167,8 @@ function Checklist({ items }: { items: string[] }) {
   );
 }
 
-// ---------- Proof reveal ----------
-function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
+// ---------- Session complete (PROOF_REDIRECT phase placeholder) ----------
+function SessionComplete({ result, weekTopic, weekNumber, onRestart }: {
   result: TutorSessionResult; weekTopic: string; weekNumber: number; onRestart: () => void;
 }) {
   const { gaps, projectAssignment } = result;
@@ -163,7 +176,7 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
   const criteria = [projectAssignment.acceptance_criteria[0] ?? projectAssignment.title, ...projectAssignment.acceptance_criteria.slice(1)];
 
   return (
-    <div className="fixed inset-0 overflow-y-auto bg-[--background] z-[60] animate-dp-rev-up">
+    <div className="flex-1 overflow-y-auto bg-[--background]">
       <div className="max-w-[720px] mx-auto px-4 sm:px-6 pt-10 sm:pt-14 pb-[90px] md:pb-20">
         <div className="flex items-center gap-[13px] mb-[26px]">
           <div className="w-[46px] h-[46px] rounded-full shrink-0 flex items-center justify-center text-primary border-[1.5px] animate-dp-stamp"
@@ -210,7 +223,9 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
                       </span>
                       <span className="text-[13px] font-medium">{g.concept}</span>
                     </div>
-                    <ArrowRight size={16} className="hidden sm:block text-[--muted-foreground]" />
+                    <svg className="hidden sm:block w-4 h-4 text-[--muted-foreground]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
                     <div className="text-[12.5px] leading-[1.5] pl-[11px] border-l-2 border-primary">
                       {projectAssignment.acceptance_criteria[i] ?? g.evidence}
                     </div>
@@ -227,12 +242,6 @@ function ProofReveal({ result, weekTopic, weekNumber, onRestart }: {
         </div>
 
         <div className="flex flex-wrap gap-3 mt-[26px] items-center">
-          <Link
-            href="/proof"
-            className="inline-flex items-center gap-2 bg-primary text-primary-foreground border-0 rounded-[9px] px-[18px] py-[11px] text-[14px] font-semibold whitespace-nowrap hover:brightness-110 transition-[filter]"
-          >
-            Start building <ArrowRight size={16} />
-          </Link>
           <button
             onClick={onRestart}
             className="bg-transparent border-0 text-[--muted-foreground] text-[13.5px] font-medium px-[6px] py-[11px] whitespace-nowrap hover:text-foreground"
@@ -251,7 +260,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [phase, setPhase] = useState<"chatting" | "analyzing" | "revealed">("chatting");
+  const [phase, setPhase] = useState<"PREP" | "CHAT" | "PROOF_REDIRECT">("PREP");
   const [analyzeStep, setAnalyzeStep] = useState("");
   const [result, setResult] = useState<TutorSessionResult | null>(null);
   const [gaps, setGaps] = useState<Gap[]>([]);
@@ -259,11 +268,12 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   const threadRef = useRef<HTMLDivElement>(null);
   // clean history only contains {role, content} — no choices — for API calls
   const cleanHistory = useRef<Message[]>([]);
-  const didBootstrap = useRef(false);
   // stable UUID per session — prevents duplicate DB rows on retry
   const sessionId = useRef(crypto.randomUUID());
   const [showMasteryTooltip, setShowMasteryTooltip] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState<Choice | null>(null);
+  // tracks correctness of chip answers only (free-text answers do not contribute)
+  const [recentAnswers, setRecentAnswers] = useState<boolean[]>([]);
 
   useEffect(() => {
     if (!hasMasteryTooltipBeenSeen()) setShowMasteryTooltip(true);
@@ -276,12 +286,21 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
   useEffect(() => { scrollDown(); }, [messages, isSending, phase, scrollDown]);
 
+  // Bootstrap: transition PREP → CHAT and fetch first question
   useEffect(() => {
-    if (didBootstrap.current) return;
-    didBootstrap.current = true;
-    fetchAssistant(cleanHistory.current);
+    if (phase !== "PREP") return;
+    setMessages([]);
+    setGaps([]);
+    setInput("");
+    setResult(null);
+    setError(null);
+    setRecentAnswers([]);
+    cleanHistory.current = [];
+    sessionId.current = crypto.randomUUID();
+    setPhase("CHAT");
+    fetchAssistant([]);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [phase]);
 
   async function fetchAssistant(history: Message[]) {
     setIsSending(true);
@@ -319,8 +338,8 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
     }
   }
 
-  async function sendUserMessage(text: string) {
-    if (!text || isSending || phase !== "chatting") return;
+  async function sendUserMessage(text: string, chipCorrectness?: boolean) {
+    if (!text || isSending || phase !== "CHAT") return;
     const userMessage: Message = { role: "user", content: text };
     const nextClean = [...cleanHistory.current, userMessage];
     cleanHistory.current = nextClean;
@@ -332,74 +351,105 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       return [...updated, userMessage];
     });
     setInput("");
+
+    // Update chip-answer correctness tracking
+    let updatedAnswers = recentAnswers;
+    if (chipCorrectness !== undefined) {
+      updatedAnswers = [...recentAnswers, chipCorrectness];
+      setRecentAnswers(updatedAnswers);
+    }
+
+    // Check if session should auto-end after this answer
+    const questionCount = nextClean.filter((m) => m.role === "assistant").length;
+    if (shouldEndSession(updatedAnswers, questionCount)) {
+      await triggerEndSession(nextClean);
+      return;
+    }
+
     await fetchAssistant(nextClean);
   }
 
-  async function endSession() {
-    if (isSending || phase !== "chatting") return;
-    const userTurns = cleanHistory.current.filter((m) => m.role === "user");
-    if (userTurns.length < 1) { setError("Have at least one exchange before ending."); return; }
-
-    setPhase("analyzing");
+  async function triggerEndSession(history: Message[]) {
+    setPhase("CHAT"); // keep CHAT while analyzing overlay shows
     const analyzeSteps = ["Re-reading the transcript…", "Locating the gaps…", "Compiling the proof…"];
-    for (const step of analyzeSteps) {
-      setAnalyzeStep(step);
-      await new Promise((r) => setTimeout(r, 620));
-    }
+    setAnalyzeStep(analyzeSteps[0]);
 
-    try {
-      const res = await fetch("/api/tutor/close-session", {
+    // Show analyzing overlay by briefly toggling analyzeStep through the steps
+    const runSteps = async () => {
+      for (const step of analyzeSteps) {
+        setAnalyzeStep(step);
+        await new Promise((r) => setTimeout(r, 620));
+      }
+    };
+
+    const [res] = await Promise.all([
+      fetch("/api/tutor/close-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationHistory: cleanHistory.current, weekTopic, sessionId: sessionId.current }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? "Couldn't generate your project — try again");
+        body: JSON.stringify({ conversationHistory: history, weekTopic, sessionId: sessionId.current }),
+      }).then(async (r) => ({ ok: r.ok, data: await r.json() })),
+      runSteps(),
+    ]);
 
-      if (data.gaps) setGaps(data.gaps);
-      setResult(data);
-      setPhase("revealed");
-    } catch (err) {
-      setPhase("chatting");
-      setError(err instanceof Error ? err.message : "Couldn't generate your project — try again");
+    if (!res.ok) {
+      setAnalyzeStep("");
+      setError(res.data.error ?? "Couldn't generate your project — try again");
+      return;
     }
+
+    if (res.data.gaps) setGaps(res.data.gaps);
+    setResult(res.data);
+    setAnalyzeStep("");
+    setPhase("PROOF_REDIRECT");
   }
 
+  async function endSession() {
+    if (isSending || phase !== "CHAT") return;
+    const userTurns = cleanHistory.current.filter((m) => m.role === "user");
+    if (userTurns.length < 1) { setError("Have at least one exchange before ending."); return; }
+    await triggerEndSession(cleanHistory.current);
+  }
+
+  // Natural restart: reset to PREP phase (the PREP useEffect will handle the rest)
   function restart() {
-    setMessages([]); setGaps([]); setInput(""); setResult(null); setError(null);
-    setPhase("chatting"); cleanHistory.current = []; didBootstrap.current = false;
-    sessionId.current = crypto.randomUUID();
-    setTimeout(() => { didBootstrap.current = true; fetchAssistant([]); }, 60);
+    setPhase("PREP");
   }
 
-  const canEnd = messages.some((m) => m.role === "user") && phase === "chatting" && !isSending;
+  const questionCount = messages.filter((m) => m.role === "assistant" && m.content).length;
+  const hasUserTurn = messages.some((m) => m.role === "user");
+  const canEnd = hasUserTurn && phase === "CHAT" && !isSending;
 
-  // Chips: only on the last assistant message when chatting and not sending
+  // Chips: only on the last assistant message when in CHAT and not sending
   const lastMsg = messages[messages.length - 1];
   const activeChoices =
-    !isSending && phase === "chatting" && lastMsg?.role === "assistant" && lastMsg.choices
+    !isSending && phase === "CHAT" && lastMsg?.role === "assistant" && lastMsg.choices
       ? lastMsg.choices
       : null;
+
+  const showAnalyzing = phase === "CHAT" && analyzeStep !== "";
+
+  if (phase === "PROOF_REDIRECT" && result) {
+    return (
+      <div className="flex flex-1 min-h-0">
+        <SessionComplete result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={restart} />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-1 min-h-0 relative">
       {/* Chat column */}
       <div className="flex flex-1 flex-col min-w-0">
         {/* Week banner */}
-        {(() => {
-          const questionCount = messages.filter((m) => m.role === "assistant" && m.content).length;
-          return (
-            <div className="flex items-start gap-2 px-4 sm:px-6 py-[9px] text-primary text-[12px] border-b"
-              style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
-              <Zap size={13} className="shrink-0 mt-[1px]" />
-              <span>
-                {questionCount > 0 && <b className="mr-1">Q{questionCount} · </b>}
-                <b>Week {weekNumber} — {weekTopic}.</b>
-                {questionCount === 0 && " No formulas first. I want to hear how you actually think about it."}
-              </span>
-            </div>
-          );
-        })()}
+        <div className="flex items-start gap-2 px-4 sm:px-6 py-[9px] text-primary text-[12px] border-b"
+          style={{ background: "color-mix(in oklab, var(--primary) 6%, transparent)", borderColor: "color-mix(in oklab, var(--primary) 14%, transparent)" }}>
+          <Zap size={13} className="shrink-0 mt-[1px]" />
+          <span>
+            {questionCount > 0 && <b className="mr-1">Q{questionCount} · </b>}
+            <b>Week {weekNumber} — {weekTopic}.</b>
+            {questionCount === 0 && " No formulas first. I want to hear how you actually think about it."}
+          </span>
+        </div>
 
         {/* Thread */}
         <div ref={threadRef} className="flex-1 overflow-y-auto p-4 sm:p-6">
@@ -408,7 +458,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
               <div key={`${m.role}-${i}`} className={`flex animate-dp-rise ${m.role === "user" ? "justify-end" : ""}`}>
                 {m.role === "assistant" ? (
                   <div className="max-w-[85%]">
-                    <div className="font-mono text-[9.5px] tracking-[0.08em] uppercase text-[--muted-foreground] mb-[5px]">Claude · asks, doesn&apos;t answer</div>
+                    <div className="font-mono text-[9.5px] tracking-[0.08em] uppercase text-[--muted-foreground] mb-[5px]">MENTOR · asks, doesn&apos;t answer</div>
                     <div className="rounded-[12px] rounded-bl-[3px] px-[14px] py-[12px] text-[13.5px] leading-[1.55] whitespace-pre-wrap break-words bg-[--card] border border-[--border] text-[oklch(0.82_0_0)]">
                       {m.content || (isSending && i === messages.length - 1 ? (
                         <span className="inline-flex gap-1 items-center py-0.5">
@@ -437,7 +487,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         {error && (
           <div className="px-4 sm:px-6 pb-2 flex items-center gap-3 max-w-[760px] mx-auto w-full">
             <p className="text-sm text-destructive flex-1">{error}</p>
-            {phase === "chatting" && !isSending && cleanHistory.current.length > 0 && (
+            {phase === "CHAT" && !isSending && cleanHistory.current.length > 0 && (
               <button onClick={() => fetchAssistant(cleanHistory.current)} className="text-xs text-[--muted-foreground] underline underline-offset-2 shrink-0 flex items-center gap-1">
                 <RefreshCw size={11} /> retry
               </button>
@@ -446,7 +496,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         )}
 
         {/* Composer */}
-        {phase === "chatting" && (
+        {phase === "CHAT" && !showAnalyzing && (
           <div className="border-t border-[--border] px-4 sm:px-6 py-[14px]">
             <div className="max-w-[760px] mx-auto flex flex-col gap-[10px]">
               {/* Answer chips */}
@@ -477,7 +527,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
                             setPendingAnswer(c);
                             setTimeout(() => {
                               setPendingAnswer(null);
-                              sendUserMessage(c.text);
+                              sendUserMessage(c.text, c.isCorrect);
                             }, 1500);
                           }}
                           disabled={isRevealing || isSending}
@@ -541,15 +591,10 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       </div>
 
       {/* Gap rail */}
-      {phase !== "revealed" && <GapRail gaps={gaps} />}
+      <GapRail gaps={gaps} />
 
       {/* Analyzing overlay */}
-      {phase === "analyzing" && <AnalyzingOverlay step={analyzeStep} />}
-
-      {/* Proof reveal */}
-      {phase === "revealed" && result && (
-        <ProofReveal result={result} weekTopic={weekTopic} weekNumber={weekNumber} onRestart={restart} />
-      )}
+      {showAnalyzing && <AnalyzingOverlay step={analyzeStep} />}
     </div>
   );
 }
