@@ -3,6 +3,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import { TopicPicker } from "@/components/tutor/TopicPicker";
 import { MigrationBanner } from "@/components/tutor/MigrationBanner";
 import { getWeekContext } from "@/lib/tutor/context";
+import { getActiveNodeContext } from "@/lib/tutor/getActiveNodeContext";
 import { redirect } from "next/navigation";
 
 export default async function TutorPage() {
@@ -10,7 +11,10 @@ export default async function TutorPage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
 
-  const context = await getWeekContext(user.id);
+  const [context, activeNodeCtx] = await Promise.all([
+    getWeekContext(user.id),
+    getActiveNodeContext(user.id).catch(() => null),
+  ]);
 
   if (!context) {
     return (
@@ -49,6 +53,8 @@ export default async function TutorPage() {
         weekNumber={context.weekNumber}
         days={context.days}
         sessionCount={sessionCount}
+        activeNodeTitle={activeNodeCtx?.nodeTitle}
+        activeNodeResources={activeNodeCtx?.resources}
       />
     </div>
   );

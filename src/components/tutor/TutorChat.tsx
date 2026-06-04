@@ -46,9 +46,17 @@ interface Gap {
   evidence: string;
 }
 
+interface Resource {
+  id: string;
+  title: string;
+  url: string;
+}
+
 interface Props {
   weekTopic: string;
   weekNumber: number;
+  activeNodeTitle?: string;
+  resources?: Resource[];
 }
 
 // ---------- Gap rail ----------
@@ -254,8 +262,125 @@ function SessionComplete({ result, weekTopic, weekNumber, onRestart }: {
   );
 }
 
+// ---------- PREP phase ----------
+function PrepPhase({
+  activeNodeTitle,
+  resources,
+  completedIds,
+  onToggle,
+  onStart,
+  showConfirm,
+  onConfirmStart,
+  onCancelConfirm,
+  isTransitioning,
+}: {
+  activeNodeTitle?: string;
+  resources: Resource[];
+  completedIds: Set<string>;
+  onToggle: (id: string, checked: boolean) => void;
+  onStart: () => void;
+  showConfirm: boolean;
+  onConfirmStart: () => void;
+  onCancelConfirm: () => void;
+  isTransitioning: boolean;
+}) {
+  if (isTransitioning) {
+    return (
+      <div className="flex flex-1 items-center justify-center">
+        <div className="flex items-center gap-3 text-[--muted-foreground]">
+          <div className="w-4 h-4 rounded-full border-2 border-[color-mix(in_oklab,var(--primary)_30%,var(--border))] border-t-primary animate-dp-spin shrink-0" />
+          <span className="text-[13.5px]">Starting session…</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto">
+      <div className="max-w-[640px] mx-auto px-4 sm:px-6 pt-8 sm:pt-10 pb-[80px]">
+        {activeNodeTitle && (
+          <div className="mb-6">
+            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-[--muted-foreground] mb-[6px]">
+              Active node
+            </div>
+            <h2 className="text-[22px] font-[650] leading-[1.25]" style={{ letterSpacing: "-0.01em" }}>
+              {activeNodeTitle}
+            </h2>
+          </div>
+        )}
+
+        {resources.length > 0 && (
+          <div className="mb-7">
+            <div className="font-mono text-[10px] tracking-[0.12em] uppercase text-[--muted-foreground] mb-[10px]">
+              Before you start — mark what you&apos;ve reviewed
+            </div>
+            <div className="flex flex-col gap-[1px] border border-[--border] rounded-[12px] overflow-hidden">
+              {resources.map((r, i) => {
+                const checked = completedIds.has(r.id);
+                return (
+                  <div
+                    key={r.id}
+                    className={`flex items-center gap-3 px-4 py-[13px] bg-[--card] transition-colors hover:bg-[--card-2] cursor-pointer
+                      ${i < resources.length - 1 ? "border-b border-[--border]" : ""}`}
+                    onClick={() => onToggle(r.id, !checked)}
+                  >
+                    <div
+                      className={`w-[18px] h-[18px] rounded-[5px] border-[1.5px] shrink-0 flex items-center justify-center transition-all duration-150
+                        ${checked ? "bg-[--emerald] border-[--emerald] text-[--background]" : "bg-[--background] border-[--border] text-transparent"}`}
+                    >
+                      <Check size={11} strokeWidth={3} />
+                    </div>
+                    <a
+                      href={r.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                      className={`flex-1 text-[13.5px] leading-[1.4] hover:text-primary transition-colors ${checked ? "text-[--muted-foreground] line-through" : ""}`}
+                    >
+                      {r.title}
+                    </a>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {showConfirm ? (
+          <div className="border border-[--border] rounded-[12px] bg-[--card] p-[18px_20px] mb-4 animate-dp-rise">
+            <p className="text-[13.5px] leading-[1.5] mb-4 text-[--muted-foreground]">
+              You haven&apos;t marked any resources as reviewed. Start the session anyway?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={onConfirmStart}
+                className="px-[16px] py-[8px] rounded-[8px] bg-primary text-primary-foreground text-[13.5px] font-medium hover:brightness-110 transition-all"
+              >
+                Yes, start
+              </button>
+              <button
+                onClick={onCancelConfirm}
+                className="px-[16px] py-[8px] rounded-[8px] border border-[--border] text-[--muted-foreground] text-[13.5px] font-medium hover:text-foreground transition-colors"
+              >
+                Go back
+              </button>
+            </div>
+          </div>
+        ) : (
+          <button
+            onClick={onStart}
+            className="px-[20px] py-[10px] rounded-[9px] bg-primary text-primary-foreground text-[14px] font-medium hover:brightness-110 transition-all"
+          >
+            Start session
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ---------- Main TutorChat ----------
-export function TutorChat({ weekTopic, weekNumber }: Props) {
+export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = [] }: Props) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -274,8 +399,31 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   // tracks correctness of chip answers only (free-text answers do not contribute)
   const [recentAnswers, setRecentAnswers] = useState<boolean[]>([]);
 
+  // PREP phase state
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+
   useEffect(() => {
     if (!hasMasteryTooltipBeenSeen()) setShowMasteryTooltip(true);
+  }, []);
+
+  // On PREP mount: fetch existing resource completions from Supabase
+  useEffect(() => {
+    if (phase !== "PREP" || resources.length === 0) return;
+    import("@/lib/supabase/client").then(({ createClient }) => {
+      const supabase = createClient();
+      supabase
+        .from("user_resource_completions")
+        .select("resource_id")
+        .in("resource_id", resources.map((r) => r.id))
+        .then(({ data }) => {
+          if (data) {
+            setCompletedIds(new Set(data.map((row: { resource_id: string }) => row.resource_id)));
+          }
+        });
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const scrollDown = useCallback(() => {
@@ -285,9 +433,16 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
 
   useEffect(() => { scrollDown(); }, [messages, isSending, phase, scrollDown]);
 
-  // Bootstrap: transition PREP → CHAT and fetch first question
+  // Bootstrap: if no resources, skip PREP and go straight to CHAT
   useEffect(() => {
     if (phase !== "PREP") return;
+    if (resources.length === 0) {
+      startSession();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function resetForSession() {
     setMessages([]);
     setGaps([]);
     setInput("");
@@ -296,10 +451,60 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
     setRecentAnswers([]);
     cleanHistory.current = [];
     sessionId.current = crypto.randomUUID();
+  }
+
+  function startSession() {
+    resetForSession();
     setPhase("CHAT");
     fetchAssistant([]);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [phase]);
+  }
+
+  function handleStartSessionClick() {
+    if (completedIds.size === 0 && resources.length > 0) {
+      setShowConfirm(true);
+      return;
+    }
+    doTransitionToChat();
+  }
+
+  function doTransitionToChat() {
+    setShowConfirm(false);
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setIsTransitioning(false);
+      startSession();
+    }, 600);
+  }
+
+  async function toggleResourceCompletion(id: string, checked: boolean) {
+    // Optimistic update
+    setCompletedIds((prev) => {
+      const next = new Set(prev);
+      if (checked) next.add(id);
+      else next.delete(id);
+      return next;
+    });
+
+    try {
+      if (checked) {
+        await fetch("/api/resources/completions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ resourceId: id }),
+        });
+      } else {
+        await fetch(`/api/resources/completions/${id}`, { method: "DELETE" });
+      }
+    } catch {
+      // Revert on failure
+      setCompletedIds((prev) => {
+        const next = new Set(prev);
+        if (checked) next.delete(id);
+        else next.add(id);
+        return next;
+      });
+    }
+  }
 
   async function fetchAssistant(history: Message[]) {
     setIsSending(true);
@@ -427,6 +632,25 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       : null;
 
   const showAnalyzing = phase === "ANALYZING";
+
+  // PREP phase
+  if (phase === "PREP") {
+    return (
+      <div className="flex flex-1 min-h-0">
+        <PrepPhase
+          activeNodeTitle={activeNodeTitle}
+          resources={resources}
+          completedIds={completedIds}
+          onToggle={toggleResourceCompletion}
+          onStart={handleStartSessionClick}
+          showConfirm={showConfirm}
+          onConfirmStart={doTransitionToChat}
+          onCancelConfirm={() => setShowConfirm(false)}
+          isTransitioning={isTransitioning}
+        />
+      </div>
+    );
+  }
 
   // TODO: redirect to /proof/[sessionId] (Task #24)
   if (phase === "PROOF_REDIRECT" && result) {

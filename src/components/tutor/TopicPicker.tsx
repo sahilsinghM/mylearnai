@@ -6,11 +6,19 @@ import { TutorChat } from "./TutorChat";
 import type { PlanDay } from "@/lib/tutor/context";
 import { canStartSession, type Level } from "@/lib/tutor/presession";
 
+interface ActiveNodeResource {
+  id: string;
+  title: string;
+  url: string;
+}
+
 interface Props {
   defaultTopic: string;
   weekNumber: number;
   days: PlanDay[];
   sessionCount: number;
+  activeNodeTitle?: string;
+  activeNodeResources?: ActiveNodeResource[];
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -27,7 +35,7 @@ const LEVELS: { value: Level; label: string }[] = [
   { value: "fluent",   label: "Comfortable" },
 ];
 
-export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount }: Props) {
+export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, activeNodeTitle, activeNodeResources }: Props) {
   const [selectedTopic, setSelectedTopic] = useState(defaultTopic);
   const [selectedLevel, setSelectedLevel] = useState<Level>("");
   const [started, setStarted] = useState(false);
@@ -36,7 +44,14 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount }: Pr
   const resources = selectedDay?.resources ?? [];
 
   if (started) {
-    return <TutorChat weekTopic={selectedTopic} weekNumber={weekNumber} />;
+    return (
+      <TutorChat
+        weekTopic={selectedTopic}
+        weekNumber={weekNumber}
+        activeNodeTitle={activeNodeTitle}
+        resources={activeNodeResources}
+      />
+    );
   }
 
   const noPlan = days.length === 0;
