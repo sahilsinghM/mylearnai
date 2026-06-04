@@ -8,19 +8,6 @@ function makeSupabaseMock({
   deleteError = null as { message: string } | null,
 } = {}) {
   const upsertMock = vi.fn().mockResolvedValue({ error: upsertError });
-  const deleteMock = vi.fn().mockResolvedValue({ error: deleteError });
-
-  // chainable builder for .from().upsert() and .from().delete().eq().eq()
-  const eqDeleteBuilder = {
-    eq: vi.fn().mockReturnThis(),
-  };
-  // make the last eq resolve
-  eqDeleteBuilder.eq.mockImplementation(function (this: typeof eqDeleteBuilder) {
-    (this as { _resolve?: () => Promise<{ error: null }> })._resolve = () => deleteMock();
-    return {
-      eq: vi.fn().mockImplementation(() => deleteMock()),
-    };
-  });
 
   const fromMock = vi.fn().mockReturnValue({
     upsert: upsertMock,
@@ -40,11 +27,17 @@ function makeSupabaseMock({
 }
 
 // --- helpers ---
-function makeRequest(body: unknown, method = "POST") {
+function makePostRequest(body: unknown) {
   return new NextRequest("http://localhost/api/resources/completions", {
-    method,
+    method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+  });
+}
+
+function makeDeleteRequest(resourceId: string) {
+  return new Request(`http://localhost/api/resources/completions/${resourceId}`, {
+    method: "DELETE",
   });
 }
 
@@ -60,7 +53,7 @@ describe("POST /api/resources/completions", () => {
     }));
 
     const { POST } = await import("../resources/completions/route");
-    const res = await POST(makeRequest({ resourceId: "res-1" }));
+    const res = await POST(makePostRequest({ resourceId: "res-1" }));
     expect(res.status).toBe(401);
   });
 
@@ -72,7 +65,7 @@ describe("POST /api/resources/completions", () => {
     }));
 
     const { POST } = await import("../resources/completions/route");
-    const res = await POST(makeRequest({ resourceId: "res-1" }));
+    const res = await POST(makePostRequest({ resourceId: "res-1" }));
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.ok).toBe(true);
@@ -82,18 +75,20 @@ describe("POST /api/resources/completions", () => {
     expect(fromCall[0]).toBe("user_resource_completions");
     const upsertCall = supabase.from.mock.results[0].value.upsert.mock.calls[0];
     expect(upsertCall[0]).toMatchObject({ user_id: "user-abc", resource_id: "res-1" });
+    // Verify ignoreDuplicates is set
+    expect(upsertCall[1]).toMatchObject({ ignoreDuplicates: true });
   });
 
   it("is idempotent — duplicate mark returns 200 without error", async () => {
     const user = { id: "user-abc" };
-    // Upsert with onConflict does not return error on duplicate
+    // Upsert with ignoreDuplicates does not return error on duplicate
     const supabase = makeSupabaseMock({ user, upsertError: null });
     vi.doMock("@/lib/supabase/server", () => ({
       createClient: vi.fn().mockResolvedValue(supabase),
     }));
 
     const { POST } = await import("../resources/completions/route");
-    const res1 = await POST(makeRequest({ resourceId: "res-1" }));
+    const res1 = await POST(makePostRequest({ resourceId: "res-1" }));
     expect(res1.status).toBe(200);
 
     vi.resetModules();
@@ -102,7 +97,7 @@ describe("POST /api/resources/completions", () => {
       createClient: vi.fn().mockResolvedValue(supabase2),
     }));
     const { POST: POST2 } = await import("../resources/completions/route");
-    const res2 = await POST2(makeRequest({ resourceId: "res-1" }));
+    const res2 = await POST2(makePostRequest({ resourceId: "res-1" }));
     expect(res2.status).toBe(200);
   });
 
@@ -114,12 +109,12 @@ describe("POST /api/resources/completions", () => {
     }));
 
     const { POST } = await import("../resources/completions/route");
-    const res = await POST(makeRequest({}));
+    const res = await POST(makePostRequest({}));
     expect(res.status).toBe(400);
   });
 });
 
-describe("DELETE /api/resources/completions", () => {
+describe("DELETE /api/resources/completions/[resourceId]", () => {
   beforeEach(() => {
     vi.resetModules();
   });
@@ -130,8 +125,10 @@ describe("DELETE /api/resources/completions", () => {
       createClient: vi.fn().mockResolvedValue(supabase),
     }));
 
-    const { DELETE } = await import("../resources/completions/route");
-    const res = await DELETE(makeRequest({ resourceId: "res-1" }, "DELETE"));
+    const { DELETE } = await import("../resources/completions/[resourceId]/route");
+    const res = await DELETE(makeDeleteRequest("res-1"), {
+      params: Promise.resolve({ resourceId: "res-1" }),
+    });
     expect(res.status).toBe(401);
   });
 
@@ -142,8 +139,10 @@ describe("DELETE /api/resources/completions", () => {
       createClient: vi.fn().mockResolvedValue(supabase),
     }));
 
-    const { DELETE } = await import("../resources/completions/route");
-    const res = await DELETE(makeRequest({ resourceId: "res-1" }, "DELETE"));
+    const { DELETE } = await import("../resources/completions/[resourceId]/route");
+    const res = await DELETE(makeDeleteRequest("res-1"), {
+      params: Promise.resolve({ resourceId: "res-1" }),
+    });
     expect(res.status).toBe(200);
     const json = await res.json();
     expect(json.ok).toBe(true);
@@ -157,8 +156,10 @@ describe("DELETE /api/resources/completions", () => {
       createClient: vi.fn().mockResolvedValue(supabase),
     }));
 
-    const { DELETE } = await import("../resources/completions/route");
-    const res = await DELETE(makeRequest({ resourceId: "nonexistent" }, "DELETE"));
+    const { DELETE } = await import("../resources/completions/[resourceId]/route");
+    const res = await DELETE(makeDeleteRequest("nonexistent"), {
+      params: Promise.resolve({ resourceId: "nonexistent" }),
+    });
     expect(res.status).toBe(200);
   });
 });
