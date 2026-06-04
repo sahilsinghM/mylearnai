@@ -40,6 +40,19 @@ describe("buildTutorSystemPrompt", () => {
     const prompt = buildTutorSystemPrompt("Transformers", 1);
     expect(prompt).toContain("I think I get it");
   });
+
+  it("injects gap concepts into the prompt when gapConcepts is non-empty", () => {
+    const prompt = buildTutorSystemPrompt("Transformers", 1, ["Attention mechanism", "Positional encoding"]);
+    expect(prompt).toContain("Attention mechanism");
+    expect(prompt).toContain("Positional encoding");
+    expect(prompt).toContain("probe");
+  });
+
+  it("leaves the prompt unaffected when gapConcepts is empty", () => {
+    const promptWithEmpty = buildTutorSystemPrompt("Transformers", 1, []);
+    const promptWithUndefined = buildTutorSystemPrompt("Transformers", 1);
+    expect(promptWithEmpty).toBe(promptWithUndefined);
+  });
 });
 
 describe("buildInitialPlanPrompt", () => {

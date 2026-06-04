@@ -212,8 +212,11 @@ export function escapeTranscriptContent(content: string): string {
   return content.replace(/[<>]/g, "");
 }
 
-export function buildTutorSystemPrompt(weekTopic: string, weekNumber: number): string {
-  return `You are a rigorous mentor tutoring an engineer on: ${weekTopic}.
+export function buildTutorSystemPrompt(weekTopic: string, weekNumber: number, gapConcepts?: string[]): string {
+  const gapLine = gapConcepts && gapConcepts.length > 0
+    ? `\nGap areas identified (probe these in upcoming questions): ${gapConcepts.join(", ")}`
+    : "";
+  return `You are a rigorous mentor tutoring an engineer on: ${weekTopic}.${gapLine}
 Context: They are on Week ${weekNumber} of their AI/ML learning path.
 
 OPENING MESSAGE REQUIREMENT: In your very first question, end with one sentence telling the user about the "I think I get it" button below the chat — e.g. "Tap 'I think I get it' when you feel confident about a concept and want to move on."

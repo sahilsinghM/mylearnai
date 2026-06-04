@@ -16,6 +16,7 @@ const messageSchema = z.object({
 const bodySchema = z.object({
   conversationHistory: z.array(messageSchema).max(50),
   weekTopic: z.string().max(200).optional(),
+  gapConcepts: z.array(z.string().max(200)).max(10).optional(),
 });
 
 const choiceSchema = z.object({ text: z.string() });
@@ -38,11 +39,11 @@ export async function POST(request: NextRequest) {
   if (!parse.success) return NextResponse.json({ error: "Invalid input" }, { status: 400 });
 
   const context = await getWeekContext(user.id);
-  const { conversationHistory, weekTopic } = parse.data;
+  const { conversationHistory, weekTopic, gapConcepts } = parse.data;
   const rawTopic = weekTopic ?? context?.weekTopic;
   if (!rawTopic) return NextResponse.json({ error: "Topic required" }, { status: 400 });
   const topic = sanitizeTopicForPrompt(rawTopic);
-  const systemPrompt = buildTutorSystemPrompt(topic, context?.weekNumber ?? 1);
+  const systemPrompt = buildTutorSystemPrompt(topic, context?.weekNumber ?? 1, gapConcepts);
 
   const messages = conversationHistory.length === 0
     ? [{ role: "user" as const, content: TUTOR_BOOTSTRAP_TURN }]

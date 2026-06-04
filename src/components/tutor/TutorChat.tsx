@@ -55,39 +55,29 @@ interface Props {
 }
 
 // ---------- Gap rail ----------
-function GapRail({ gaps }: { gaps: Gap[] }) {
+function GapRail({ gaps, gapConcepts }: { gaps: Gap[]; gapConcepts: string[] }) {
+  const displayConcepts = gapConcepts.length > 0 ? gapConcepts : gaps.map((g) => g.concept);
   return (
     <div className="w-[300px] shrink-0 border-l border-[--border] bg-[--card] flex flex-col min-h-0 hidden lg:flex">
       <div className="px-6 pt-4 pb-3 border-b border-[--border]">
         <div className="flex items-center gap-2 text-[13px] font-semibold whitespace-nowrap">
           <span className="w-[7px] h-[7px] rounded-full bg-[--emerald] shrink-0 animate-dp-pulse" />
-          Gap radar
+          Focus areas found
         </div>
         <p className="text-[11.5px] text-[--muted-foreground] mt-[5px] leading-[1.45]">
           Concepts that wobbled this session. These become the proof at the end.
         </p>
       </div>
       <div className="flex-1 overflow-y-auto px-6 pt-[14px] pb-4 flex flex-col gap-[10px]">
-        {gaps.length === 0 ? (
+        {displayConcepts.length === 0 ? (
           <div className="text-[--muted-foreground] text-[12.5px] leading-[1.5] text-center pt-7">
             <div className="text-[oklch(0.32_0_0)] text-[30px] mb-2">◎</div>
             Nothing flagged yet.<br />Answer cleanly and it stays empty.
           </div>
         ) : (
-          gaps.map((g, i) => (
+          displayConcepts.map((concept, i) => (
             <div key={i} className="border border-[--border] rounded-[10px] p-[11px_12px] bg-[--card-2] animate-dp-pop">
-              <div className="flex items-center gap-2">
-                <span className={`font-mono text-[9.5px] tracking-[0.06em] uppercase font-semibold px-[6px] py-[2px] rounded-[5px]
-                  ${g.severity === "high" ? "text-destructive bg-[color-mix(in_oklab,var(--destructive)_16%,transparent)]"
-                  : g.severity === "med" ? "text-[--amber] bg-[color-mix(in_oklab,var(--amber)_16%,transparent)]"
-                  : "text-[--muted-foreground] bg-[--muted]"}`}>
-                  {g.severity}
-                </span>
-                <span className="text-[13px] font-medium">{g.concept}</span>
-              </div>
-              <p className="text-[11.5px] text-[--muted-foreground] mt-[6px] leading-[1.45] pl-[9px] border-l-2 border-[--border]">
-                {g.evidence}
-              </p>
+              <span className="text-[13px] font-medium">{concept}</span>
             </div>
           ))
         )}
@@ -383,6 +373,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
   const [analyzeStep, setAnalyzeStep] = useState("");
   const [result, setResult] = useState<TutorSessionResult | null>(null);
   const [gaps, setGaps] = useState<Gap[]>([]);
+  const [gapConcepts, setGapConcepts] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
   const threadRef = useRef<HTMLDivElement>(null);
   // clean history only contains {role, content} — no choices — for API calls
@@ -515,7 +506,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
     }
   }
 
-  async function fetchAssistant(history: Message[]) {
+  async function fetchAssistant(history: Message[], currentGapConcepts?: string[]) {
     setIsSending(true);
     setError(null);
     // Show typing indicator
@@ -525,7 +516,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       const res = await fetch("/api/tutor/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationHistory: history, weekTopic }),
+        body: JSON.stringify({ conversationHistory: history, weekTopic, gapConcepts: currentGapConcepts }),
       });
 
       const data = await res.json();
@@ -567,9 +558,19 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
 
     // Update chip-answer correctness tracking
     let updatedAnswers = recentAnswers;
+    let updatedGapConcepts = gapConcepts;
     if (chipCorrectness !== undefined) {
       updatedAnswers = [...recentAnswers, chipCorrectness];
       setRecentAnswers(updatedAnswers);
+      if (chipCorrectness === false) {
+        // Find the last assistant message content as the concept
+        const lastAssistant = [...messages].reverse().find((m) => m.role === "assistant");
+        if (lastAssistant?.content) {
+          const concept = lastAssistant.content.slice(0, 60);
+          updatedGapConcepts = [...gapConcepts, concept];
+          setGapConcepts(updatedGapConcepts);
+        }
+      }
     }
 
     // Check if session should auto-end after this answer
@@ -579,7 +580,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       return;
     }
 
-    await fetchAssistant(nextClean);
+    await fetchAssistant(nextClean, updatedGapConcepts);
   }
 
   async function triggerEndSession(history: Message[]) {
@@ -833,7 +834,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       </div>
 
       {/* Gap rail */}
-      <GapRail gaps={gaps} />
+      <GapRail gaps={gaps} gapConcepts={gapConcepts} />
     </div>
   );
 }
