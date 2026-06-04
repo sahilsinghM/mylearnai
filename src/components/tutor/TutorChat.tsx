@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
+import { useRouter } from "next/navigation";
 import { Zap, Send, Flag, Check, ShieldCheck, RefreshCw } from "lucide-react";
 import type { Message, TutorSessionResult } from "@/types/tutor";
 import { hasMasteryTooltipBeenSeen, markMasteryTooltipSeen } from "@/lib/tutor/masteryTooltip";
@@ -386,6 +387,8 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
   const cleanHistory = useRef<Message[]>([]);
   // stable UUID per session — prevents duplicate DB rows on retry
   const sessionId = useRef(crypto.randomUUID());
+  const isClosingSession = useRef(false);
+  const router = useRouter();
   const [showMasteryTooltip, setShowMasteryTooltip] = useState(false);
   const [pendingAnswer, setPendingAnswer] = useState<Choice | null>(null);
   // tracks correctness of chip answers only (free-text answers do not contribute)
@@ -592,6 +595,8 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
   }
 
   async function triggerEndSession(history: Message[]) {
+    if (isClosingSession.current) return;
+    isClosingSession.current = true;
     setPhase("ANALYZING");
     setAnalyzeStep(ANALYZE_STEPS[0]);
 
@@ -621,6 +626,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       if (res.data.gaps) setGaps(res.data.gaps);
       setResult(res.data);
       setPhase("PROOF_REDIRECT");
+      router.push(`/proof/${sessionId.current}`);
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
@@ -628,6 +634,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       setIsSending(false);
     } finally {
       setAnalyzeStep("");
+      isClosingSession.current = false;
     }
   }
 
@@ -675,7 +682,6 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
     );
   }
 
-  // TODO: redirect to /proof/[sessionId] (Task #24)
   if (phase === "PROOF_REDIRECT" && result) {
     return (
       <div className="flex flex-1 min-h-0">
