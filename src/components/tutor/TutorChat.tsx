@@ -259,7 +259,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   const [messages, setMessages] = useState<DisplayMessage[]>([]);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
-  const [phase, setPhase] = useState<"PREP" | "CHAT" | "PROOF_REDIRECT">("PREP");
+  const [phase, setPhase] = useState<"PREP" | "CHAT" | "ANALYZING" | "PROOF_REDIRECT">("PREP");
   const [analyzeStep, setAnalyzeStep] = useState("");
   const [result, setResult] = useState<TutorSessionResult | null>(null);
   const [gaps, setGaps] = useState<Gap[]>([]);
@@ -369,37 +369,43 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
   }
 
   async function triggerEndSession(history: Message[]) {
-    setPhase("CHAT"); // keep CHAT while analyzing overlay shows
-    const analyzeSteps = ["Re-reading the transcript…", "Locating the gaps…", "Compiling the proof…"];
-    setAnalyzeStep(analyzeSteps[0]);
+    setPhase("ANALYZING");
+    setAnalyzeStep(ANALYZE_STEPS[0]);
 
     // Show analyzing overlay by briefly toggling analyzeStep through the steps
     const runSteps = async () => {
-      for (const step of analyzeSteps) {
+      for (const step of ANALYZE_STEPS) {
         setAnalyzeStep(step);
         await new Promise((r) => setTimeout(r, 620));
       }
     };
 
-    const [res] = await Promise.all([
-      fetch("/api/tutor/close-session", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationHistory: history, weekTopic, sessionId: sessionId.current }),
-      }).then(async (r) => ({ ok: r.ok, data: await r.json() })),
-      runSteps(),
-    ]);
+    try {
+      const [res] = await Promise.all([
+        fetch("/api/tutor/close-session", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationHistory: history, weekTopic, sessionId: sessionId.current }),
+        }).then(async (r) => ({ ok: r.ok, data: await r.json() })),
+        runSteps(),
+      ]);
 
-    if (!res.ok) {
+      if (!res.ok) {
+        setError(res.data.error ?? "Couldn't generate your project — try again");
+        return;
+      }
+
+      if (res.data.gaps) setGaps(res.data.gaps);
+      setResult(res.data);
+      setPhase("PROOF_REDIRECT");
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : "Something went wrong";
+      setError(msg);
+      setPhase("CHAT");
+      setIsSending(false);
+    } finally {
       setAnalyzeStep("");
-      setError(res.data.error ?? "Couldn't generate your project — try again");
-      return;
     }
-
-    if (res.data.gaps) setGaps(res.data.gaps);
-    setResult(res.data);
-    setAnalyzeStep("");
-    setPhase("PROOF_REDIRECT");
   }
 
   async function endSession() {
@@ -420,8 +426,9 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
       ? lastMsg.choices
       : null;
 
-  const showAnalyzing = phase === "CHAT" && analyzeStep !== "";
+  const showAnalyzing = phase === "ANALYZING";
 
+  // TODO: redirect to /proof/[sessionId] (Task #24)
   if (phase === "PROOF_REDIRECT" && result) {
     return (
       <div className="flex flex-1 min-h-0">
@@ -493,7 +500,7 @@ export function TutorChat({ weekTopic, weekNumber }: Props) {
         {showAnalyzing && <AnalyzingInline step={analyzeStep} />}
 
         {/* Composer */}
-        {phase === "CHAT" && !showAnalyzing && (
+        {phase === "CHAT" && (
           <div className="border-t border-[--border] px-4 sm:px-6 py-[14px]">
             <div className="max-w-[760px] mx-auto flex flex-col gap-[10px]">
               {/* Answer chips */}
