@@ -290,6 +290,93 @@ export function RoadmapPage({ data, isAuthed }: Props) {
     return () => stage.removeEventListener("wheel", handleWheel);
   }, [handleWheel]);
 
+  // Touch: single-finger pan + two-finger pinch zoom. Bound as native
+  // non-passive listeners so we can preventDefault and own the gesture
+  // (the stage also sets `touch-action: none`). Mouse/wheel paths above are
+  // left untouched for desktop.
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    let mode: "none" | "pan" | "pinch" = "none";
+    let panStart: { tx: number; ty: number; vx: number; vy: number } | null = null;
+    let pinchStart: { dist: number; cx: number; cy: number; scale: number; vx: number; vy: number } | null = null;
+
+    const onChrome = (t: EventTarget | null) =>
+      !!(t as HTMLElement | null)?.closest(".mr-controls, .mr-legend, .mr-banner, .mr-panel");
+    const dist = (a: Touch, b: Touch) => Math.hypot(a.clientX - b.clientX, a.clientY - b.clientY);
+
+    const onStart = (e: TouchEvent) => {
+      if (onChrome(e.target)) return;
+      const rect = stage.getBoundingClientRect();
+      if (e.touches.length === 1) {
+        const t = e.touches[0];
+        // Background tap clears selection; node taps fall through to onClick.
+        if (!(e.target as HTMLElement).closest(".mr-node")) selectNode(null);
+        mode = "pan";
+        panStart = { tx: t.clientX, ty: t.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+        setDragging(true);
+      } else if (e.touches.length === 2) {
+        e.preventDefault();
+        const [a, b] = [e.touches[0], e.touches[1]];
+        mode = "pinch";
+        pinchStart = {
+          dist: dist(a, b),
+          cx: (a.clientX + b.clientX) / 2 - rect.left,
+          cy: (a.clientY + b.clientY) / 2 - rect.top,
+          scale: viewRef.current.scale,
+          vx: viewRef.current.x,
+          vy: viewRef.current.y,
+        };
+      }
+    };
+
+    const onMove = (e: TouchEvent) => {
+      if (mode === "pan" && panStart && e.touches.length === 1) {
+        e.preventDefault();
+        const t = e.touches[0];
+        const dx = t.clientX - panStart.tx;
+        const dy = t.clientY - panStart.ty;
+        setView((v) => ({ ...v, x: panStart!.vx + dx, y: panStart!.vy + dy }));
+      } else if (mode === "pinch" && pinchStart && e.touches.length === 2) {
+        e.preventDefault();
+        const [a, b] = [e.touches[0], e.touches[1]];
+        const newScale = clamp(0.4, pinchStart.scale * (dist(a, b) / pinchStart.dist), 2.0);
+        const ratio = newScale / pinchStart.scale;
+        // Keep the pinch midpoint anchored under the fingers.
+        const newX = pinchStart.cx - (pinchStart.cx - pinchStart.vx) * ratio;
+        const newY = pinchStart.cy - (pinchStart.cy - pinchStart.vy) * ratio;
+        setView({ x: newX, y: newY, scale: newScale });
+      }
+    };
+
+    const onEnd = (e: TouchEvent) => {
+      if (e.touches.length === 0) {
+        mode = "none";
+        panStart = null;
+        pinchStart = null;
+        setDragging(false);
+      } else if (e.touches.length === 1) {
+        // Lifting one finger of a pinch: continue panning with the other.
+        const t = e.touches[0];
+        mode = "pan";
+        pinchStart = null;
+        panStart = { tx: t.clientX, ty: t.clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+      }
+    };
+
+    stage.addEventListener("touchstart", onStart, { passive: false });
+    stage.addEventListener("touchmove", onMove, { passive: false });
+    stage.addEventListener("touchend", onEnd);
+    stage.addEventListener("touchcancel", onEnd);
+    return () => {
+      stage.removeEventListener("touchstart", onStart);
+      stage.removeEventListener("touchmove", onMove);
+      stage.removeEventListener("touchend", onEnd);
+      stage.removeEventListener("touchcancel", onEnd);
+    };
+  }, [selectNode]);
+
   const zoomBy = (factor: number) => {
     const stage = stageRef.current;
     if (!stage) return;

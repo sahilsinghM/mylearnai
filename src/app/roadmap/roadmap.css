@@ -117,6 +117,7 @@
   position: relative;
   overflow: hidden;
   min-height: 0;
+  touch-action: none;
   background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--primary) 3%, transparent), var(--background));
 }
 
