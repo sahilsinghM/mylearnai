@@ -66,7 +66,7 @@ export function SignUpForm() {
     <div className="space-y-6">
       <div className="space-y-1">
         <h1 className="text-2xl font-bold">Create your account</h1>
-        <p className="text-sm text-muted-foreground">Start your adaptive AI learning journey</p>
+        <p className="text-sm text-muted-foreground">One session. One real artifact. No tutorial fluff.</p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-4">
