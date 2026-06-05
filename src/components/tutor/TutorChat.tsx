@@ -619,6 +619,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       ]);
 
       if (!res.ok) {
+        isClosingSession.current = false;
         setError(res.data.error ?? "Couldn't generate your project — try again");
         return;
       }
@@ -628,13 +629,13 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       setPhase("PROOF_REDIRECT");
       router.push(`/proof/${sessionId.current}`);
     } catch (err) {
+      isClosingSession.current = false;
       const msg = err instanceof Error ? err.message : "Something went wrong";
       setError(msg);
       setPhase("CHAT");
       setIsSending(false);
     } finally {
       setAnalyzeStep("");
-      isClosingSession.current = false;
     }
   }
 

@@ -17,7 +17,7 @@ const messageSchema = z.object({
 const bodySchema = z.object({
   conversationHistory: z.array(messageSchema).max(50),
   weekTopic: z.string().max(200).optional(),
-  sessionId: z.string().uuid().optional(),
+  sessionId: z.string().uuid(),
 });
 
 const gapSchema = z.object({
