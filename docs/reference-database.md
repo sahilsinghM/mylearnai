@@ -13,6 +13,7 @@ DeepPath uses Supabase Postgres. All user-owned tables have Row Level Security (
 | `005_master_roadmap_seed.sql` | Initial 33-node curriculum data |
 | `006_user_roadmaps.sql` | `user_roadmaps`, `user_node_states`, `roadmap_adaptation_log` |
 | `007_roadmap_merge_builder_spine.sql` | Adds `track` column; reclassifies nodes into builder spine + optional tracks; seeds 14 builder-spine nodes, edges, resources, projects |
+| `008_curated_video_resources.sql` | Adds curated best-in-class video resources (3Blue1Brown, StatQuest, Karpathy, etc.) to 32 nodes |
 | `20260604_user_resource_completions.sql` | `user_resource_completions` table with RLS |
 
 ---
