@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import type { Gap } from "@/types/tutor";
+import { track } from "@/lib/analytics";
 
 interface SessionData {
   id: string;
@@ -114,6 +115,7 @@ export function ProofClient({ sessionId, initialData }: ProofClientProps) {
       });
       if (res.ok) {
         setSaved(true);
+        track("proof_project_submitted", { sessionId });
       } else {
         setUrlError("Failed to save. Please try again.");
       }

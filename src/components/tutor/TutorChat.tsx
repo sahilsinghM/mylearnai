@@ -7,6 +7,7 @@ import type { Message, TutorSessionResult } from "@/types/tutor";
 import { hasMasteryTooltipBeenSeen, markMasteryTooltipSeen } from "@/lib/tutor/masteryTooltip";
 import { shouldEndSession } from "@/lib/tutor/sessionEnd";
 import type { ActiveNodeResource as Resource } from "@/lib/tutor/getActiveNodeContext";
+import { track } from "@/lib/analytics";
 
 interface Choice {
   text: string;
@@ -463,6 +464,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
   function startSession() {
     resetForSession();
     setPhase("CHAT");
+    track("session_started", { sessionId: sessionId.current });
     fetchAssistant([]);
   }
 
