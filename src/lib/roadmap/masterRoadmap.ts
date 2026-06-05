@@ -10,6 +10,7 @@ import type {
   MasterRoadmapData,
   Phase,
   ResourceType,
+  Track,
 } from "./types";
 
 const PHASES: Phase[] = [
@@ -28,6 +29,7 @@ interface RawNode {
   blurb: string;
   phase: number;
   row_index: number;
+  track: Track;
   difficulty: MasterNode["diff"];
   hours_awareness: number;
   hours_working: number;
@@ -111,6 +113,7 @@ export function buildMasterRoadmapData(
     id: n.id,
     phase: n.phase,
     row: n.row_index,
+    track: n.track,
     title: n.title,
     blurb: n.blurb,
     hours: [n.hours_awareness, n.hours_working, n.hours_fluent, n.hours_expert],
@@ -155,7 +158,7 @@ async function fetchMasterRoadmap(): Promise<MasterRoadmapData> {
   ] = await Promise.all([
     supabase
       .from("master_roadmap_nodes")
-      .select("id, title, blurb, phase, row_index, difficulty, hours_awareness, hours_working, hours_fluent, hours_expert, relevance_fintech, relevance_research, relevance_mlops, relevance_dev_tools, relevance_education_ai, skip_for_levels, depth_awareness, depth_working, depth_fluent, depth_expert")
+      .select("id, title, blurb, phase, row_index, track, difficulty, hours_awareness, hours_working, hours_fluent, hours_expert, relevance_fintech, relevance_research, relevance_mlops, relevance_dev_tools, relevance_education_ai, skip_for_levels, depth_awareness, depth_working, depth_fluent, depth_expert")
       .eq("is_published", true)
       .order("phase")
       .order("row_index"),

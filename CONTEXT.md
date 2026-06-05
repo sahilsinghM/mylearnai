@@ -52,3 +52,12 @@ An interpreted behavioral event that informs Adaptation Agent decisions. In v1, 
 
 **Phase**
 A major curriculum section grouping Master Nodes. Seven phases in the current graph: Foundations / Classical ML / Deep Learning / Transformers / LLMs / Agents & RAG / Production. Each phase has a distinct hue used in the graph visualization.
+
+**Track**
+Which path a Master Node belongs to, orthogonal to its Phase. Four values:
+- `spine` — the required builder path (working with LLMs → RAG → agents → evaluation → customizing → production). Every learner follows it.
+- `foundations` — optional math (linear algebra, probability, calculus).
+- `internals` — optional "how models work" depth (backprop, attention math, pretraining, RLHF).
+- `classical` — optional classical / tabular ML.
+
+Spine nodes connect with `required` edges; optional-track nodes connect with `recommended` / `contextual` edges so they are reachable but never block spine progress. Per-goal depth targets decide which optional tracks a given user actually follows — "Build AI products" keeps them shallow/skippable, "Research" promotes them.
