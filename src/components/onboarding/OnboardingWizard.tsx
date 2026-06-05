@@ -126,7 +126,7 @@ export function OnboardingWizard() {
 
   if (roadmapReveal) {
     return <RoadmapReveal reveal={roadmapReveal} onStart={() => {
-      router.push("/dashboard");
+      router.push("/roadmap");
       router.refresh();
     }} />;
   }

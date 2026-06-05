@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
           .eq("id", user.id)
           .single();
 
-        const redirectTo = profile?.onboarding_completed_at ? "/dashboard" : "/onboarding";
+        const redirectTo = profile?.onboarding_completed_at ? "/roadmap" : "/onboarding";
         return NextResponse.redirect(new URL(redirectTo, requestUrl.origin));
       }
     }

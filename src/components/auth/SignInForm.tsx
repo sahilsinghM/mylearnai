@@ -35,7 +35,7 @@ export function SignInForm() {
       .single();
 
     if (profile?.onboarding_completed_at) {
-      router.push("/dashboard");
+      router.push("/roadmap");
     } else {
       router.push("/onboarding");
     }
