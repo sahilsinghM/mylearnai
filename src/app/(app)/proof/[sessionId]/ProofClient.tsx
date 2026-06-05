@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import Link from "next/link";
 import { TopBar } from "@/components/layout/TopBar";
 import { Badge } from "@/components/ui/badge";
@@ -20,6 +20,7 @@ interface SessionData {
 
 interface ProofClientProps {
   sessionId: string;
+  initialData?: SessionData | null;
 }
 
 const MAX_ATTEMPTS = 10;
@@ -31,16 +32,18 @@ const SEVERITY_VARIANT: Record<string, "default" | "secondary" | "destructive"> 
   low: "secondary",
 };
 
-export function ProofClient({ sessionId }: ProofClientProps) {
-  const [session, setSession] = useState<SessionData | null>(null);
-  const [loading, setLoading] = useState(true);
+export function ProofClient({ sessionId, initialData }: ProofClientProps) {
+  const [session, setSession] = useState<SessionData | null>(initialData ?? null);
+  const [loading, setLoading] = useState(initialData === undefined || initialData === null);
   const [attempts, setAttempts] = useState(0);
   const [failed, setFailed] = useState(false);
 
-  const [githubUrl, setGithubUrl] = useState("");
+  const [githubUrl, setGithubUrl] = useState(initialData?.github_url ?? "");
   const [urlError, setUrlError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
   const poll = useCallback(async (attempt: number) => {
     try {
@@ -54,18 +57,24 @@ export function ProofClient({ sessionId }: ProofClientProps) {
         setLoading(false);
         return;
       }
-      if (res.status === 404 && attempt < MAX_ATTEMPTS) {
-        setAttempts(attempt + 1);
-        setTimeout(() => poll(attempt + 1), POLL_INTERVAL);
+      if (res.status === 404) {
+        if (attempt < MAX_ATTEMPTS) {
+          setAttempts(attempt + 1);
+          timeoutRef.current = setTimeout(() => poll(attempt + 1), POLL_INTERVAL);
+          return;
+        }
+        // 404 after max attempts
+        setFailed(true);
+        setLoading(false);
         return;
       }
-      // 404 after max attempts or other error
+      // 401, 500, etc — fail immediately
       setFailed(true);
       setLoading(false);
     } catch {
       if (attempt < MAX_ATTEMPTS) {
         setAttempts(attempt + 1);
-        setTimeout(() => poll(attempt + 1), POLL_INTERVAL);
+        timeoutRef.current = setTimeout(() => poll(attempt + 1), POLL_INTERVAL);
       } else {
         setFailed(true);
         setLoading(false);
@@ -74,8 +83,13 @@ export function ProofClient({ sessionId }: ProofClientProps) {
   }, [sessionId]);
 
   useEffect(() => {
+    // If initialData is provided (not undefined), data is already loaded — skip polling
+    if (initialData !== undefined) return;
     poll(0);
-  }, [poll]);
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, [poll, initialData]);
 
   const handleRetry = () => {
     setFailed(false);
@@ -223,9 +237,21 @@ export function ProofClient({ sessionId }: ProofClientProps) {
             Submit your work
           </h3>
           {saved ? (
-            <p className="text-sm text-green-600 dark:text-green-400">
-              GitHub URL saved successfully.
-            </p>
+            <div className="flex items-center gap-3">
+              <p className="text-sm text-green-600 dark:text-green-400">
+                GitHub URL saved:{" "}
+                <a href={githubUrl} target="_blank" rel="noopener noreferrer" className="underline underline-offset-2">
+                  {githubUrl}
+                </a>
+              </p>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSaved(false)}
+              >
+                Edit
+              </Button>
+            </div>
           ) : (
             <form onSubmit={handleSubmitGithub} className="space-y-3">
               <div className="space-y-1.5">

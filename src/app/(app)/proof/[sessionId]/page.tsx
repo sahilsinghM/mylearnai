@@ -22,5 +22,8 @@ export default async function ProofPage({ params }: ProofPageProps) {
 
   if (!session) return notFound();
 
-  return <ProofClient sessionId={sessionId} />;
+  // Pass initialData only when gaps are ready; null means still processing → client will poll
+  const initialData = session.gaps !== null ? session : null;
+
+  return <ProofClient sessionId={sessionId} initialData={initialData} />;
 }
