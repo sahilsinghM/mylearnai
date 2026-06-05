@@ -21,10 +21,13 @@ export default async function TutorPage() {
       <div>
         <TopBar title="Tutor" />
         <TopicPicker
-          defaultTopic=""
+          defaultTopic={activeNodeCtx?.nodeTitle ?? ""}
           weekNumber={1}
           days={[]}
           sessionCount={0}
+          activeNodeTitle={activeNodeCtx?.nodeTitle}
+          activeNodeBlurb={activeNodeCtx?.nodeBlurb}
+          activeNodeResources={activeNodeCtx?.resources}
         />
       </div>
     );
@@ -54,6 +57,7 @@ export default async function TutorPage() {
         days={context.days}
         sessionCount={sessionCount}
         activeNodeTitle={activeNodeCtx?.nodeTitle}
+        activeNodeBlurb={activeNodeCtx?.nodeBlurb}
         activeNodeResources={activeNodeCtx?.resources}
       />
     </div>

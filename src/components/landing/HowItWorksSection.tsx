@@ -1,21 +1,21 @@
 const STEPS = [
   {
     number: "01",
-    title: "You get grilled on your current topic",
+    title: "Pick what you're working on",
     description:
-      "A Socratic session on this week's AI/ML subject. Claude asks questions; it does not give answers. The session ends when you say you're done.",
+      "Your roadmap tells you where you are. Pick the concept you're on — or type any AI/ML topic you want to tackle today.",
   },
   {
     number: "02",
-    title: "Claude extracts the exact gaps",
+    title: "Defend what you know",
     description:
-      "When the session closes, the transcript is analyzed. The concepts you fumbled are identified precisely, not generically.",
+      "A Socratic session: Claude asks, you explain. When you can't, that's the gap. The session ends when you're done.",
   },
   {
     number: "03",
-    title: "Proof lands in your history",
+    title: "Leave with something real",
     description:
-      "A GitHub-ready project spec with verifiable acceptance criteria. A LinkedIn post draft citing the gap you closed. Both tied to the specific concept.",
+      "A GitHub-ready project spec. A LinkedIn post draft citing the specific gap you closed. Both tied to what actually happened in your session.",
   },
 ] as const;
 

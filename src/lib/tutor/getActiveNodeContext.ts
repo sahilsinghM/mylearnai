@@ -11,6 +11,7 @@ export interface ActiveNodeResource {
 
 export interface ActiveNodeContext {
   nodeTitle: string;
+  nodeBlurb: string;
   resources: ActiveNodeResource[];
 }
 
@@ -32,7 +33,7 @@ export async function getActiveNodeContext(userId: string): Promise<ActiveNodeCo
   const [{ data: node }, { data: resources }] = await Promise.all([
     supabase
       .from("master_roadmap_nodes")
-      .select("title")
+      .select("title, blurb")
       .eq("id", activeNodeId)
       .maybeSingle(),
     supabase
@@ -48,6 +49,7 @@ export async function getActiveNodeContext(userId: string): Promise<ActiveNodeCo
 
   return {
     nodeTitle: node.title as string,
+    nodeBlurb: (node.blurb as string) ?? "",
     resources: (resources ?? []) as ActiveNodeResource[],
   };
 }

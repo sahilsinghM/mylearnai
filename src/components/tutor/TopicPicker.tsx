@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, ArrowRight } from "lucide-react";
 import { TutorChat } from "./TutorChat";
 import type { PlanDay } from "@/lib/tutor/context";
 import { canStartSession, type Level } from "@/lib/tutor/presession";
@@ -13,6 +13,7 @@ interface Props {
   days: PlanDay[];
   sessionCount: number;
   activeNodeTitle?: string;
+  activeNodeBlurb?: string;
   activeNodeResources?: ActiveNodeResource[];
 }
 
@@ -24,19 +25,19 @@ const STATUS_LABEL: Record<string, string> = {
   failed: "Failed",
 };
 
-const LEVELS: { value: Level; label: string }[] = [
-  { value: "beginner", label: "Beginner" },
-  { value: "some",     label: "Some experience" },
-  { value: "fluent",   label: "Comfortable" },
+const LEVELS: { value: Level; label: string; description: string }[] = [
+  { value: "beginner",  label: "Just heard of it",   description: "I couldn't explain it to someone else" },
+  { value: "some",      label: "Rough idea",          description: "I understand the concept but not the details" },
+  { value: "fluent",    label: "Could explain it",    description: "I understand it well enough to teach the basics" },
 ];
 
-export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, activeNodeTitle, activeNodeResources }: Props) {
+export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, activeNodeTitle, activeNodeBlurb, activeNodeResources }: Props) {
   const [selectedTopic, setSelectedTopic] = useState(defaultTopic);
   const [selectedLevel, setSelectedLevel] = useState<Level>("");
   const [started, setStarted] = useState(false);
 
   const selectedDay = days.find((d) => d.theme === selectedTopic);
-  const resources = selectedDay?.resources ?? [];
+  const resources = selectedDay?.resources ?? activeNodeResources ?? [];
 
   if (started) {
     return (
@@ -57,12 +58,32 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
   }
 
   return (
-    <div className="p-4 sm:p-6 max-w-xl space-y-6">
+    <div className="p-4 sm:p-6 max-w-xl space-y-7">
 
-      {/* Primary: topic */}
-      <div className="space-y-2">
-        <p className="text-[15px] font-semibold text-foreground tracking-tight">
-          What do you want to learn?
+      {/* Context header — active node blurb when available */}
+      {activeNodeTitle && (
+        <div className="rounded-lg border border-border bg-card overflow-hidden">
+          <div className="px-4 py-2.5 border-b border-border bg-card-2">
+            <span className="text-xs text-muted-foreground">
+              Your active topic
+              {sessionCount > 0 && (
+                <span className="ml-2 text-muted-foreground/60">· {sessionCount} session{sessionCount !== 1 ? "s" : ""} completed</span>
+              )}
+            </span>
+          </div>
+          <div className="px-4 py-4 space-y-2">
+            <p className="text-base font-semibold leading-snug">{activeNodeTitle}</p>
+            {activeNodeBlurb && (
+              <p className="text-sm text-muted-foreground leading-relaxed">{activeNodeBlurb}</p>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Topic selection */}
+      <div className="space-y-2.5">
+        <p className="text-sm font-medium text-foreground">
+          {noPlan ? "What do you want to work on today?" : "Which topic are you tackling?"}
         </p>
         {noPlan ? (
           <input
@@ -95,7 +116,7 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
                       {day.theme}
                     </span>
                     {label && (
-                      <span className={`text-xs shrink-0 ${day.status === "completed" ? "text-emerald-600" : "text-muted-foreground"}`}>
+                      <span className={`text-xs shrink-0 ${day.status === "completed" ? "text-emerald-500" : "text-muted-foreground"}`}>
                         {label}
                       </span>
                     )}
@@ -110,7 +131,9 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
       {/* Prep resources */}
       {resources.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Before you start</p>
+          <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+            Resources for this topic
+          </p>
           <div className="space-y-1.5">
             {resources.map((r) => (
               <a
@@ -128,25 +151,26 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
         </div>
       )}
 
-      {/* Secondary: level */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-muted-foreground">
-          What&apos;s your experience level?
+      {/* Level selector */}
+      <div className="space-y-2.5">
+        <p className="text-sm font-medium text-foreground">
+          How well do you know this right now?
         </p>
-        <div className="flex flex-wrap gap-2">
-          {LEVELS.map(({ value, label }) => {
+        <div className="space-y-2">
+          {LEVELS.map(({ value, label, description }) => {
             const active = selectedLevel === value;
             return (
               <button
                 key={value}
                 onClick={() => setSelectedLevel(active ? "" : value)}
-                className={`min-h-[44px] px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
+                className={`w-full text-left px-4 py-3 rounded-lg border text-sm transition-colors ${
                   active
-                    ? "bg-primary text-primary-foreground border-primary"
-                    : "bg-transparent text-foreground border-input hover:border-primary/50"
+                    ? "border-primary bg-primary/5 text-foreground"
+                    : "border-border bg-card text-foreground hover:bg-muted/40"
                 }`}
               >
-                {label}
+                <span className="font-medium">{label}</span>
+                <span className="text-muted-foreground ml-2 text-xs">{description}</span>
               </button>
             );
           })}
@@ -157,9 +181,10 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
       <button
         onClick={start}
         disabled={!ready}
-        className="w-full sm:w-auto px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-45"
+        className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-45"
       >
-        Start session
+        Begin session
+        <ArrowRight className="h-3.5 w-3.5" />
       </button>
     </div>
   );
