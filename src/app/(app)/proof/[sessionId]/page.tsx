@@ -15,7 +15,7 @@ export default async function ProofPage({ params }: ProofPageProps) {
 
   const { data: session } = await supabase
     .from("tutor_sessions")
-    .select("id, gaps, acceptance_criteria, project_title, project_description, github_url")
+    .select("id, gaps, acceptance_criteria, project_title, project_desc, github_url")
     .eq("id", sessionId)
     .eq("user_id", user.id)
     .single();

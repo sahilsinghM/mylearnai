@@ -15,7 +15,7 @@ interface SessionData {
   gaps: Gap[] | null;
   acceptance_criteria: string[] | null;
   project_title: string | null;
-  project_description: string | null;
+  project_desc: string | null;
   github_url: string | null;
 }
 
@@ -212,8 +212,8 @@ export function ProofClient({ sessionId, initialData }: ProofClientProps) {
             </h3>
             <div className="rounded-lg border p-4 space-y-3">
               <p className="font-semibold">{session.project_title}</p>
-              {session.project_description && (
-                <p className="text-sm text-muted-foreground">{session.project_description}</p>
+              {session.project_desc && (
+                <p className="text-sm text-muted-foreground">{session.project_desc}</p>
               )}
               {session.acceptance_criteria && session.acceptance_criteria.length > 0 && (
                 <div className="space-y-1.5 pt-1">
