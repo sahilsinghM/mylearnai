@@ -2,6 +2,8 @@ export type DepthLevel = "awareness" | "working" | "fluent" | "expert";
 export type EdgeType = "required" | "recommended" | "contextual";
 export type ProgrammingLevel = "beginner" | "intermediate" | "senior" | "staff";
 export type ResourceType = "paper" | "video" | "blog" | "docs" | "book";
+// "spine" is the required builder path; the rest are optional depth tracks.
+export type Track = "spine" | "foundations" | "internals" | "classical";
 
 export interface MasterResource {
   id: string;
@@ -26,6 +28,7 @@ export interface MasterNode {
   id: string;
   phase: number;
   row: number;
+  track: Track;
   title: string;
   blurb: string;
   hours: [number, number, number, number]; // [awareness, working, fluent, expert]

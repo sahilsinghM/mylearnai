@@ -12,6 +12,7 @@ DeepPath uses Supabase Postgres. All user-owned tables have Row Level Security (
 | `004_master_roadmap.sql` | `master_roadmap_nodes`, `master_roadmap_edges`, `master_roadmap_resources`, `master_roadmap_projects` |
 | `005_master_roadmap_seed.sql` | Initial 33-node curriculum data |
 | `006_user_roadmaps.sql` | `user_roadmaps`, `user_node_states`, `roadmap_adaptation_log` |
+| `007_roadmap_merge_builder_spine.sql` | Adds `track` column; reclassifies nodes into builder spine + optional tracks; seeds 14 builder-spine nodes, edges, resources, projects |
 | `20260604_user_resource_completions.sql` | `user_resource_completions` table with RLS |
 
 ---
@@ -189,15 +190,16 @@ One row per completed Socratic tutoring session.
 
 ### `master_roadmap_nodes`
 
-The human-curated AI/ML curriculum. 33 rows in the seed. AI agents read; humans write via migrations.
+The human-curated AI/ML curriculum. 47 rows after migration `007` (33 original + 14 builder-spine nodes). AI agents read; humans write via migrations.
 
 | Column | Type | Notes |
 |--------|------|-------|
 | `id` | TEXT PK | Slug, e.g. `transformer-self-attention` |
 | `title` | TEXT | |
 | `blurb` | TEXT | One-sentence description |
-| `phase` | INT | 1–7 |
+| `phase` | INT | 1–7 (visual column) |
 | `row_index` | INT | Order within phase |
+| `track` | TEXT | `spine` (required builder path) / `foundations` / `internals` / `classical` (optional depth). Added in `007`. |
 | `difficulty` | INT | 1–5 |
 | `hours_awareness` | INT | Estimated hours at awareness depth |
 | `hours_working` | INT | |

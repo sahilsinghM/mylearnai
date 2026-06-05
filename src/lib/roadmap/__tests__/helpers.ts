@@ -10,6 +10,7 @@ export function makeGraph(
       id: n.id ?? "node",
       phase: n.phase ?? 1,
       row: n.row ?? 0,
+      track: n.track ?? "spine",
       title: n.title ?? n.id ?? "node",
       blurb: n.blurb ?? "",
       hours: n.hours ?? [2, 8, 16, 32],

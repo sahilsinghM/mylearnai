@@ -10,6 +10,7 @@ describe("buildMasterRoadmapData", () => {
         blurb: "Q, K, V.",
         phase: 4,
         row_index: 1,
+        track: "internals",
         difficulty: 4,
         hours_awareness: 1,
         hours_working: 8,

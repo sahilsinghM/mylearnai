@@ -1,6 +1,6 @@
 # DeepPath
 
-A personalized AI/ML curriculum for engineers who want to reach frontier labs. DeepPath builds a 7-phase learning roadmap based on your background and goal, adapts it as you learn, and ends every Socratic tutoring session with a proof artifact — a GitHub-ready project spec and LinkedIn post draft.
+A personalized AI/ML curriculum for engineers who want to **build with AI**. DeepPath is builder-first: a required spine takes you from working with LLMs through RAG, agents, evaluation, and production, with optional depth tracks (math foundations, model internals, classical ML) for those headed toward research. It builds a roadmap from your background and goal, adapts it as you learn, and ends every Socratic tutoring session with a proof artifact — a GitHub-ready project spec and LinkedIn post draft.
 
 **Tech:** Next.js 16 · Supabase · Anthropic SDK (claude-sonnet-4-6) · TypeScript · Tailwind · Vitest
 
