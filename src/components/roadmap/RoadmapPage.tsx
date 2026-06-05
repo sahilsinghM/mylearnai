@@ -10,6 +10,7 @@ import "@/app/roadmap/roadmap.css";
 
 interface Props {
   data: MasterRoadmapData;
+  isAuthed?: boolean;
 }
 
 interface ViewState {
@@ -50,12 +51,14 @@ function NodeDetailsPanel({
   edges,
   onClose,
   onNavigate,
+  isAuthed,
 }: {
   node: MasterNode;
   nodes: MasterNode[];
   edges: MasterRoadmapData["edges"];
   onClose: () => void;
   onNavigate: (nodeId: string) => void;
+  isAuthed?: boolean;
 }) {
   const nodeMap = new Map(nodes.map((item) => [item.id, item]));
   const prerequisites = edges.filter((edge) => edge.to === node.id).map((edge) => nodeMap.get(edge.from)).filter(Boolean) as MasterNode[];
@@ -136,14 +139,20 @@ function NodeDetailsPanel({
         </div>
       </section>
 
-      <Link href={`/sign-up?from=roadmap&node=${node.id}`} className="mr-panel-cta">
-        <Sparkle size={14} /> Personalize this for me <ArrowRight size={14} />
-      </Link>
+      {isAuthed ? (
+        <Link href={`/tutor?node=${node.id}`} className="mr-panel-cta">
+          <Sparkle size={14} /> Start tutoring on this node <ArrowRight size={14} />
+        </Link>
+      ) : (
+        <Link href={`/sign-up?from=roadmap&node=${node.id}`} className="mr-panel-cta">
+          <Sparkle size={14} /> Personalize this for me <ArrowRight size={14} />
+        </Link>
+      )}
     </aside>
   );
 }
 
-export function RoadmapPage({ data }: Props) {
+export function RoadmapPage({ data, isAuthed }: Props) {
   const { phases, nodes, edges } = data;
 
   // Compute canvas dimensions
@@ -312,12 +321,21 @@ export function RoadmapPage({ data }: Props) {
           DeepPath
         </Link>
         <div className="mr-nav-spacer" />
-        <Link href="/sign-in" className="mr-signin-link">Sign in</Link>
-        <Link href="/sign-up?from=roadmap" className="mr-cta-btn">
-          <Sparkle size={13} />
-          Personalize for me
-          <ArrowRight size={13} />
-        </Link>
+        {isAuthed ? (
+          <Link href="/tutor" className="mr-cta-btn">
+            Go to tutor
+            <ArrowRight size={13} />
+          </Link>
+        ) : (
+          <>
+            <Link href="/sign-in" className="mr-signin-link">Sign in</Link>
+            <Link href="/sign-up?from=roadmap" className="mr-cta-btn">
+              <Sparkle size={13} />
+              Personalize for me
+              <ArrowRight size={13} />
+            </Link>
+          </>
+        )}
       </nav>
 
       {/* Hero */}
@@ -423,6 +441,7 @@ export function RoadmapPage({ data }: Props) {
             edges={edges}
             onClose={() => selectNode(null)}
             onNavigate={selectNode}
+            isAuthed={isAuthed}
           />
         )}
       </div>

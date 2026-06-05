@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight } from "lucide-react";
 import { getMasterRoadmap } from "@/lib/roadmap/masterRoadmap";
+import { createClient } from "@/lib/supabase/server";
 import type { DepthLevel } from "@/lib/roadmap/types";
 import "../roadmap.css";
 
@@ -39,6 +40,9 @@ export default async function RoadmapNodePage({
   const { id } = await params;
   const { data, node } = await getNode(id);
   if (!node) notFound();
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
 
   const nodeMap = new Map(data.nodes.map((item) => [item.id, item]));
   const prerequisites = data.edges.filter((edge) => edge.to === id).map((edge) => nodeMap.get(edge.from)).filter(Boolean);
@@ -105,9 +109,15 @@ export default async function RoadmapNodePage({
         </div>
       </section>
 
-      <Link href={`/sign-up?from=roadmap&node=${node.id}`} className="mr-panel-cta">
-        Personalize this for me <ArrowRight size={14} />
-      </Link>
+      {user ? (
+        <Link href={`/tutor?node=${node.id}`} className="mr-panel-cta">
+          Start tutoring on this node <ArrowRight size={14} />
+        </Link>
+      ) : (
+        <Link href={`/sign-up?from=roadmap&node=${node.id}`} className="mr-panel-cta">
+          Personalize this for me <ArrowRight size={14} />
+        </Link>
+      )}
     </main>
   );
 }

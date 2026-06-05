@@ -2,24 +2,23 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, BrainCircuit, Award, LogOut } from "lucide-react";
+import { LayoutDashboard, Map, BrainCircuit, Award, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
   {
+    href: "/roadmap",
+    icon: Map,
+    label: "Roadmap",
+    match: (p: string) => p === "/roadmap" || p.startsWith("/roadmap/"),
+  },
+  {
     href: "/dashboard",
     icon: LayoutDashboard,
     label: "Dashboard",
     match: (p: string) => p === "/dashboard",
-  },
-  {
-    href: "/plan",
-    icon: CalendarDays,
-    label: "Plan",
-    match: (p: string) => p === "/plan" || p.startsWith("/plan/"),
-    disabled: true,
   },
   {
     href: "/tutor",

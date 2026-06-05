@@ -14,6 +14,9 @@ interface Props {
   sessionCount: number;
   activeNodeTitle?: string;
   activeNodeResources?: ActiveNodeResource[];
+  // When set, the topic is locked to a specific roadmap node (node-seeded
+  // session) — the day list / free-text picker is replaced by a fixed header.
+  lockedNode?: { title: string; resources: ActiveNodeResource[] };
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -30,13 +33,13 @@ const LEVELS: { value: Level; label: string }[] = [
   { value: "fluent",   label: "Comfortable" },
 ];
 
-export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, activeNodeTitle, activeNodeResources }: Props) {
+export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, activeNodeTitle, activeNodeResources, lockedNode }: Props) {
   const [selectedTopic, setSelectedTopic] = useState(defaultTopic);
   const [selectedLevel, setSelectedLevel] = useState<Level>("");
   const [started, setStarted] = useState(false);
 
   const selectedDay = days.find((d) => d.theme === selectedTopic);
-  const resources = selectedDay?.resources ?? [];
+  const resources = lockedNode ? lockedNode.resources : (selectedDay?.resources ?? []);
 
   if (started) {
     return (
@@ -64,7 +67,12 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
         <p className="text-[15px] font-semibold text-foreground tracking-tight">
           What do you want to learn?
         </p>
-        {noPlan ? (
+        {lockedNode ? (
+          <div className="w-full px-4 py-3 rounded-lg border border-primary bg-primary/5 text-foreground text-sm">
+            <span className="text-xs text-muted-foreground mr-2">Roadmap node</span>
+            {lockedNode.title}
+          </div>
+        ) : noPlan ? (
           <input
             type="text"
             value={selectedTopic}
