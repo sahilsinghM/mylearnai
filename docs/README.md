@@ -48,22 +48,17 @@ A mid-level software engineer, employed full-time, who:
 
 ## What's Next
 
-### Proof Trail (approved 2026-05-30, pending validation gate)
+### Tutor v0.2.0 (2026-06-05)
 
-**Validation gate:** Complete 3 manual Socratic sessions. Hand-write the LinkedIn post from each proof line. Post to LinkedIn. Only build if 2 of 3 posts get engagement from AI practitioners.
+- **PREP phase** — learners see their active roadmap node and curated resources before each session. Resource completion persists.
+- **Session auto-end** — sessions close on mastery (3 correct chips after Q8), 12-question cap, or 15-question hard stop.
+- **Proof page** — `/proof/[sessionId]` shows capability statement, gap analysis, and project assignment. Learners submit a GitHub URL once built.
+- **Live gap radar** — wrong chip answers accumulate as "focus areas", fed back into subsequent questions.
+- **Dashboard** — `/dashboard` route for authenticated users.
+- **Resource completions API** — `POST /api/resources/completions` and `DELETE /api/resources/completions/[resourceId]` backed by `user_resource_completions` table.
+- **Analytics** — `session_started` and `proof_project_submitted` events via `/api/analytics/event`.
 
-**Build order (once gate is passed):**
-
-| Step | What | Effort |
-|------|------|--------|
-| 0 | Migration: `supabase/migrations/003_tutor_sessions.sql` | 30min |
-| 1 | Wire session save into close-session route | 30min |
-| 2 | `POST /api/tutor/generate-post` — LinkedIn post generator | 2h |
-| 3 | `GET /api/proof` + `PATCH /api/proof/[id]` + `/proof` page | 4h |
-| 4 | Daily topic prompt on tutor home (SSR, 20-topic curriculum) | 1h |
-| 5 | Streak counter, copy proof line button, sidebar nav link | 30min |
-
-**Total:** ~8h human / ~45min CC+gstack
+**Routes:** `/proof/[sessionId]`, `/api/proof/session/[sessionId]`, `/api/resources/completions`, `/api/analytics/event`
 
 ---
 

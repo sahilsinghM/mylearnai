@@ -1,6 +1,6 @@
 # Database Reference
 
-DeepPath uses Supabase Postgres. All user-owned tables have Row Level Security (RLS) enabled. The six migration files in `supabase/migrations/` must be applied in order.
+DeepPath uses Supabase Postgres. All user-owned tables have Row Level Security (RLS) enabled. The migration files in `supabase/migrations/` must be applied in order.
 
 ## Migrations
 
@@ -12,6 +12,7 @@ DeepPath uses Supabase Postgres. All user-owned tables have Row Level Security (
 | `004_master_roadmap.sql` | `master_roadmap_nodes`, `master_roadmap_edges`, `master_roadmap_resources`, `master_roadmap_projects` |
 | `005_master_roadmap_seed.sql` | Initial 33-node curriculum data |
 | `006_user_roadmaps.sql` | `user_roadmaps`, `user_node_states`, `roadmap_adaptation_log` |
+| `20260604_user_resource_completions.sql` | `user_resource_completions` table with RLS |
 
 ---
 
@@ -338,6 +339,24 @@ Append-only audit trail of Adaptation Agent decisions. Rows are inserted when a 
 
 ---
 
+---
+
+### `user_resource_completions`
+
+Tracks which roadmap resources a user has marked as complete. Used by the PREP phase in the tutor to persist checkbox state across refreshes.
+
+| Column | Type | Constraints |
+|--------|------|-------------|
+| `user_id` | UUID | PK, FK → `auth.users(id) ON DELETE CASCADE` |
+| `resource_id` | TEXT | PK |
+| `completed_at` | TIMESTAMPTZ | Default `now()` |
+
+**Primary key:** `(user_id, resource_id)`
+
+**RLS:** Users can SELECT, INSERT, and DELETE their own rows only.
+
+---
+
 ## RLS summary
 
 | Table | SELECT | INSERT | UPDATE | DELETE |
@@ -355,5 +374,6 @@ Append-only audit trail of Adaptation Agent decisions. Rows are inserted when a 
 | `user_roadmaps` | own row | service role | own row | cascade |
 | `user_node_states` | own row | service role | own row | cascade |
 | `roadmap_adaptation_log` | own row | service role | own row | — |
+| `user_resource_completions` | own row | own row | — | own row |
 
 "service role" = only reachable via `createAdminClient()` in Route Handlers, not from the browser.

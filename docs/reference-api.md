@@ -356,6 +356,80 @@ Updates a proof entry's LinkedIn post or proof line.
 
 ---
 
+### `GET /api/proof/session/[sessionId]`
+
+Polls a `tutor_sessions` row for proof data. Used by the `/proof/[sessionId]` page to detect when close-session has finished processing.
+
+Returns `404 { error: "Not ready" }` if the session exists but `gaps` is not yet populated (processing still in progress). Frontend polls this endpoint until a `200` response arrives.
+
+**Response `200`:**
+
+```typescript
+{
+  id: string
+  gaps: string[]
+  acceptance_criteria: string[]
+  project_title: string
+  project_desc: string
+  github_url: string | null
+}
+```
+
+**Errors:** `401 Unauthorized` · `404 Not found / Not ready`
+
+---
+
+## Resources
+
+### `POST /api/resources/completions`
+
+Marks a roadmap resource as complete for the current user. Idempotent — calling again has no effect.
+
+**Request body:**
+
+```typescript
+{ resourceId: string }
+```
+
+**Response `200`:** `{ ok: true }`
+
+**Errors:** `400 Invalid input` · `401 Unauthorized` · `500 Failed to mark completion`
+
+---
+
+### `DELETE /api/resources/completions/[resourceId]`
+
+Unmarks a resource completion. Safe to call even if the resource was never marked.
+
+**Response `200`:** `{ ok: true }`
+
+**Errors:** `401 Unauthorized` · `500 Failed to remove completion`
+
+---
+
+## Analytics
+
+### `POST /api/analytics/event`
+
+Logs a user analytics event. Requires authentication. All input is sanitized server-side before logging.
+
+**Request body:**
+
+```typescript
+{
+  event: string       // event name, e.g. "session_started" | "proof_project_submitted"
+  properties?: Record<string, unknown>
+}
+```
+
+**Allowlisted events:** `session_started`, `proof_project_submitted`. Unlisted event names are rejected with `400`.
+
+**Response `200`:** `{ ok: true }`
+
+**Errors:** `400 Invalid event` · `401 Unauthorized`
+
+---
+
 ## Auth
 
 ### `GET /api/auth/callback`

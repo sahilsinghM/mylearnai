@@ -27,6 +27,9 @@ DeepPath is a Next.js 16 application backed by Supabase (Postgres + Auth) and th
 │    /api/roadmap/adaptation-log/[id] PATCH — accept/deny  │
 │    /api/proof               GET/POST — proof trail       │
 │    /api/proof/[id]          PATCH — edit proof entry     │
+│    /api/proof/session/[id]  GET  — poll session data     │
+│    /api/resources/completions POST/DELETE — mark read    │
+│    /api/analytics/event     POST — log analytics event   │
 │    /api/milestones/[id]     PATCH — milestone status     │
 │    /api/tasks/[id]          PATCH — task status          │
 └──────────┬─────────────────────────┬─────────────────────┘
@@ -34,8 +37,8 @@ DeepPath is a Next.js 16 application backed by Supabase (Postgres + Auth) and th
            ▼                         ▼
 ┌─────────────────────┐   ┌──────────────────────────┐
 │   Supabase Postgres │   │   Anthropic API           │
-│   12 tables, RLS    │   │   claude-sonnet-4-6       │
-│   6 migrations      │   │   JSON-only responses     │
+│   13 tables, RLS    │   │   claude-sonnet-4-6       │
+│   7 migrations      │   │   JSON-only responses     │
 └─────────────────────┘   └──────────────────────────┘
 ```
 
