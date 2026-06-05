@@ -43,7 +43,9 @@ export async function POST(request: NextRequest) {
   const rawTopic = weekTopic ?? context?.weekTopic;
   if (!rawTopic) return NextResponse.json({ error: "Topic required" }, { status: 400 });
   const topic = sanitizeTopicForPrompt(rawTopic);
-  const systemPrompt = buildTutorSystemPrompt(topic, context?.weekNumber ?? 1, gapConcepts);
+  // Strip control chars from each concept to prevent prompt injection via client-supplied gapConcepts
+  const sanitizedGapConcepts = gapConcepts?.map((c) => sanitizeTopicForPrompt(c));
+  const systemPrompt = buildTutorSystemPrompt(topic, context?.weekNumber ?? 1, sanitizedGapConcepts);
 
   const messages = conversationHistory.length === 0
     ? [{ role: "user" as const, content: TUTOR_BOOTSTRAP_TURN }]

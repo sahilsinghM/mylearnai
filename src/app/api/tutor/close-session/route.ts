@@ -102,7 +102,7 @@ export async function POST(request: NextRequest) {
     };
     const { error: dbErr } = await supabase
       .from("tutor_sessions")
-      .upsert(row, { onConflict: "id" });
+      .upsert(row, { onConflict: "id", ignoreDuplicates: true });
     if (dbErr) {
       console.error("Session save failed:", dbErr);
       return NextResponse.json({ error: "Session save failed — please try again" }, { status: 500 });
