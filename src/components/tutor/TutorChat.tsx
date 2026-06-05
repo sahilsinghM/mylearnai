@@ -23,7 +23,10 @@ interface DisplayMessage extends Message {
  *  the shortest choice length (after the first truncation pass).
  */
 function normalizeChoiceLengths(choices: { text: string }[]): { text: string }[] {
-  const truncated = choices.map((c) => ({ ...c, text: c.text.slice(0, 80).trimEnd() }));
+  const truncated = choices.map((c) => {
+    const sliced = c.text.slice(0, 80).trimEnd();
+    return { ...c, text: c.text.length > 80 ? sliced + "…" : sliced };
+  });
   const shortest = Math.min(...truncated.map((c) => c.text.length));
   const maxAllowed = Math.ceil(shortest * 1.5);
   return truncated.map((c) => ({
