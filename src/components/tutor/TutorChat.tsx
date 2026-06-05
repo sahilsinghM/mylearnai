@@ -626,6 +626,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
       if (!res.ok) {
         isClosingSession.current = false;
         setError(res.data.error ?? "Couldn't generate your project — try again");
+        setPhase("CHAT");
         return;
       }
 
@@ -654,6 +655,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
   const questionCount = messages.filter((m) => m.role === "assistant" && m.content).length;
   const hasUserTurn = messages.some((m) => m.role === "user");
   const canEnd = hasUserTurn && phase === "CHAT" && !isSending;
+  const isRevealing = pendingAnswer !== null;
 
   // Chips: only on the last assistant message when in CHAT and not sending
   const lastMsg = messages[messages.length - 1];
@@ -771,7 +773,6 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
                   <div className="flex flex-col gap-[7px]">
                     {activeChoices.map((c, i) => {
                       const isPicked = pendingAnswer?.text === c.text;
-                      const isRevealing = pendingAnswer !== null;
                       let stateClass = "border-[--border] bg-[--card] text-foreground hover:border-primary hover:bg-[color-mix(in_oklab,var(--primary)_5%,transparent)] active:scale-[0.99]";
                       if (isRevealing) {
                         if (c.isCorrect) {
@@ -815,13 +816,13 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
                     value={input}
                     onChange={(e) => setInput(e.target.value)}
                     onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendUserMessage(input.trim()); } }}
-                    disabled={isSending}
+                    disabled={isSending || isRevealing}
                     placeholder={activeChoices ? "…or type your own answer" : "Type your answer…"}
                     className="flex-1 min-w-0 bg-[--background] border border-[--input] text-foreground rounded-[8px] px-[13px] py-[9px] text-[14px] outline-none transition-[border-color,box-shadow] placeholder:text-[--muted-foreground] focus:border-primary focus:shadow-[0_0_0_3px_color-mix(in_oklab,var(--primary)_18%,transparent)] disabled:opacity-50"
                   />
                   <button
                     onClick={() => sendUserMessage(input.trim())}
-                    disabled={!input.trim() || isSending}
+                    disabled={!input.trim() || isSending || isRevealing}
                     className="shrink-0 inline-flex items-center justify-center gap-[7px] bg-primary text-primary-foreground border-0 rounded-[8px] px-[15px] py-[9px] text-[14px] font-medium transition-[filter,opacity] hover:brightness-110 disabled:opacity-45"
                   >
                     <Send size={15} /><span className="hidden sm:inline">Send</span>
