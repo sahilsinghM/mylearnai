@@ -40,6 +40,11 @@ describe("shouldEndSession", () => {
     expect(shouldEndSession([], 8)).toBe(false);
   });
 
+  it("returns false at Q11 with no mastery (cap boundary is exactly Q12)", () => {
+    expect(shouldEndSession([false, false, false], 11)).toBe(false);
+    expect(shouldEndSession([], 11)).toBe(false);
+  });
+
   // Normal chatting - should continue
   it("returns false for normal early-session state", () => {
     expect(shouldEndSession([], 1)).toBe(false);

@@ -84,8 +84,9 @@ export function ProofClient({ sessionId, initialData }: ProofClientProps) {
   }, [sessionId]);
 
   useEffect(() => {
-    // If initialData is provided (not undefined), data is already loaded — skip polling
-    if (initialData !== undefined) return;
+    // Skip polling only when session data is fully ready (non-null initialData).
+    // null means "session exists but gaps not yet written" — poll until ready.
+    if (initialData !== null && initialData !== undefined) return;
     poll(0);
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);

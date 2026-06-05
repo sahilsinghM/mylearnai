@@ -446,6 +446,7 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
     cleanHistory.current = [];
     sessionId.current = crypto.randomUUID();
     setPhase("CHAT");
+    track("session_started", { sessionId: sessionId.current });
     fetchAssistant([]);
   // eslint-disable-next-line react-hooks/exhaustive-deps -- fetchAssistant is stable; resourceIds covers the resources check
   }, [resourceIds]);
@@ -495,15 +496,17 @@ export function TutorChat({ weekTopic, weekNumber, activeNodeTitle, resources = 
     });
 
     try {
+      let res: Response;
       if (checked) {
-        await fetch("/api/resources/completions", {
+        res = await fetch("/api/resources/completions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ resourceId: id }),
         });
       } else {
-        await fetch(`/api/resources/completions/${id}`, { method: "DELETE" });
+        res = await fetch(`/api/resources/completions/${id}`, { method: "DELETE" });
       }
+      if (!res.ok) throw new Error(`${res.status}`);
       setError(null);
     } catch {
       // Revert on failure and surface the error
