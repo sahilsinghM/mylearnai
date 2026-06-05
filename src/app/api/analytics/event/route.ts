@@ -1,24 +1,36 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createClient } from "@/lib/supabase/server";
 
-interface EventRequest {
-  event: string;
-  properties?: Record<string, unknown>;
+// Only events fired by our own client code are valid. Reject anything else.
+const ALLOWED_EVENTS = new Set(["session_started", "proof_project_submitted"]);
+
+function stripControlChars(s: string): string {
+  // Remove ASCII control characters (including \r, \n, \x00-\x1f) and ANSI escapes
+  // eslint-disable-next-line no-control-regex
+  return s.replace(/[\x00-\x1f\x7f]|\x1b\[[0-9;]*[a-zA-Z]/g, "");
 }
 
 export async function POST(request: NextRequest) {
   try {
-    const body: EventRequest = await request.json();
-    const { event, properties } = body;
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return NextResponse.json({ ok: true }); // silently drop unauthenticated events
 
-    if (!event) {
-      return NextResponse.json(
-        { error: "event name is required" },
-        { status: 400 }
-      );
+    const body = await request.json();
+    const event: unknown = body?.event;
+
+    if (typeof event !== "string" || event.length > 100) {
+      return NextResponse.json({ error: "invalid event" }, { status: 400 });
     }
 
-    // Log to console for v1
-    console.log(`[ANALYTICS] Event: ${event}`, properties || {});
+    if (!ALLOWED_EVENTS.has(event)) {
+      return NextResponse.json({ error: "unknown event" }, { status: 400 });
+    }
+
+    const safeEvent = stripControlChars(event);
+
+    // Log as structured JSON to prevent log injection via newlines/control chars
+    console.log(JSON.stringify({ type: "analytics", event: safeEvent, userId: user.id }));
 
     // TODO: Insert into analytics_events table when available
     // const { createClient } = await import("@/lib/supabase/server");
