@@ -5,19 +5,19 @@ export function HeroSection() {
   return (
     <section
       aria-labelledby="hero-heading"
-      className="flex flex-col items-center text-center px-4 pt-20 pb-16 gap-6 w-full animate-dp-rev-up"
+      className="flex flex-col items-center text-center px-4 pt-12 pb-10 sm:pt-20 sm:pb-16 gap-5 sm:gap-6 w-full animate-dp-rev-up"
     >
       <p className="text-xs font-mono tracking-widest uppercase" style={{ color: "oklch(0.55 0.2 264)" }}>
         For self-taught engineers
       </p>
       <h1
         id="hero-heading"
-        className="text-balance text-4xl sm:text-5xl font-bold tracking-tight max-w-2xl leading-[1.1]"
+        className="text-balance text-3xl sm:text-5xl font-bold tracking-tight max-w-2xl leading-[1.1]"
       >
         You can&apos;t get hired by watching tutorials.
       </h1>
       <p
-        className="text-lg max-w-xl leading-relaxed"
+        className="text-base sm:text-lg max-w-xl leading-relaxed"
         style={{ color: "oklch(0.78 0 0)" }}
       >
         DeepPath puts you in a Socratic session on exactly what you&apos;re working on.
@@ -25,11 +25,11 @@ export function HeroSection() {
         GitHub-ready spec proving you understood it — not a score, not a certificate.
         A project.
       </p>
-      <div className="flex flex-col sm:flex-row gap-3 mt-2">
-        <Button asChild size="lg">
+      <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto mt-1">
+        <Button asChild size="lg" className="w-full sm:w-auto">
           <Link href="/sign-up">Start with one session</Link>
         </Button>
-        <Button asChild variant="outline" size="lg">
+        <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
           <Link href="/roadmap">Explore the roadmap</Link>
         </Button>
       </div>

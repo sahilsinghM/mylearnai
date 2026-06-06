@@ -169,8 +169,8 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
                     : "border-border bg-card text-foreground hover:bg-muted/40"
                 }`}
               >
-                <span className="font-medium">{label}</span>
-                <span className="text-muted-foreground ml-2 text-xs">{description}</span>
+                <span className="font-medium block">{label}</span>
+                <span className="text-muted-foreground text-xs mt-0.5 block">{description}</span>
               </button>
             );
           })}
@@ -181,7 +181,7 @@ export function TopicPicker({ defaultTopic, weekNumber, days, sessionCount, acti
       <button
         onClick={start}
         disabled={!ready}
-        className="flex items-center gap-2 px-5 py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-45"
+        className="flex items-center justify-center sm:justify-start gap-2 w-full sm:w-auto px-5 py-3 sm:py-2.5 rounded-md bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors disabled:opacity-45"
       >
         Begin session
         <ArrowRight className="h-3.5 w-3.5" />

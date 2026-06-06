@@ -72,15 +72,15 @@ export default async function DashboardPage() {
         {/* Active node card */}
         {activeNode ? (
           <div className="rounded-lg border border-border bg-card overflow-hidden">
-            <div className="px-5 py-3 border-b border-border bg-card-2 flex items-center justify-between">
+            <div className="px-4 py-3 border-b border-border bg-card-2 flex items-center justify-between gap-2 flex-wrap">
               <span className="text-xs text-muted-foreground font-mono">
                 {phaseName} · Node {done + 1} of {totalNodes}
               </span>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-muted-foreground shrink-0">
                 {done} completed
               </span>
             </div>
-            <div className="px-5 py-5 space-y-3">
+            <div className="px-4 sm:px-5 py-4 sm:py-5 space-y-3">
               <div>
                 <p className="text-xs text-muted-foreground mb-1">You&apos;re working on</p>
                 <h2 className="text-xl font-semibold tracking-tight leading-snug">{activeNode.title}</h2>
@@ -97,7 +97,7 @@ export default async function DashboardPage() {
             </div>
           </div>
         ) : (
-          <div className="rounded-lg border border-border bg-card px-5 py-5 space-y-3">
+          <div className="rounded-lg border border-border bg-card px-4 sm:px-5 py-4 sm:py-5 space-y-3">
             <h2 className="text-base font-semibold">Ready to start?</h2>
             <p className="text-sm text-muted-foreground leading-relaxed">
               You don&apos;t have an active node yet. Head to the tutor and pick your first topic.

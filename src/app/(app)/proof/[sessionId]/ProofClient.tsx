@@ -134,7 +134,7 @@ export function ProofClient({ sessionId, initialData }: ProofClientProps) {
     return (
       <div>
         <TopBar title="Session complete" />
-        <div className="p-6 max-w-2xl space-y-4">
+        <div className="p-4 sm:p-6 max-w-2xl space-y-4">
           <p className="text-sm text-muted-foreground animate-pulse">
             Writing your proof artifact…
           </p>
@@ -148,7 +148,7 @@ export function ProofClient({ sessionId, initialData }: ProofClientProps) {
     return (
       <div>
         <TopBar title="Session complete" />
-        <div className="p-6 max-w-2xl space-y-4">
+        <div className="p-4 sm:p-6 max-w-2xl space-y-4">
           <p className="text-sm text-muted-foreground">
             Your proof artifact isn&apos;t ready yet. Give it a moment and try again.
           </p>
@@ -284,14 +284,14 @@ export function ProofClient({ sessionId, initialData }: ProofClientProps) {
         </section>
 
         {/* Navigation */}
-        <div className="flex items-center gap-4 pt-2">
-          <Button asChild>
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 sm:gap-4 pt-2">
+          <Button asChild className="w-full sm:w-auto">
             <Link href="/tutor">
               Start another session
               <ArrowRight className="h-3.5 w-3.5 ml-1.5" />
             </Link>
           </Button>
-          <Link href="/dashboard" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+          <Link href="/dashboard" className="text-sm text-center sm:text-left text-muted-foreground hover:text-foreground transition-colors py-2 sm:py-0">
             Back to dashboard
           </Link>
         </div>

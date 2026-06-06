@@ -60,12 +60,12 @@ export function ProofArtifactPreview({ artifact = MOCK_PROOF, blur = true }: Pro
 
       <div className="rounded-lg border border-border bg-card overflow-hidden animate-dp-pop">
         {/* Session header bar */}
-        <div className="flex items-center justify-between px-5 py-3 border-b border-border bg-card-2">
-          <div className="flex items-center gap-2">
-            <span className="font-mono text-xs text-muted-foreground">
+        <div className="flex items-center justify-between gap-2 px-4 sm:px-5 py-3 border-b border-border bg-card-2">
+          <div className="flex items-center gap-2 min-w-0">
+            <span className="font-mono text-xs text-muted-foreground shrink-0">
               session/
             </span>
-            <span className="font-mono text-xs font-medium">{artifact.topic}</span>
+            <span className="font-mono text-xs font-medium truncate">{artifact.topic}</span>
           </div>
           <span className="inline-flex items-center gap-1.5 text-xs font-medium px-2 py-0.5 rounded-md border border-emerald-800/40 bg-emerald-900/30 text-emerald-400">
             <CheckCircle2 className="h-3 w-3" />
@@ -74,7 +74,7 @@ export function ProofArtifactPreview({ artifact = MOCK_PROOF, blur = true }: Pro
         </div>
 
         {/* Proof line — hook-strip pattern */}
-        <div className="px-5 py-4 bg-primary/5 border-b border-primary/10">
+        <div className="px-4 sm:px-5 py-4 bg-primary/5 border-b border-primary/10">
           <p className="text-xs font-medium text-primary mb-1.5">Proof line</p>
           <p className="font-mono text-sm leading-relaxed break-words">{artifact.proofLine}</p>
         </div>
@@ -83,13 +83,13 @@ export function ProofArtifactPreview({ artifact = MOCK_PROOF, blur = true }: Pro
         <div className="grid grid-cols-1 md:grid-cols-2 divide-y md:divide-y-0 md:divide-x divide-border">
           {/* LinkedIn draft */}
           <div className="overflow-hidden">
-            <div className="px-5 pt-4 pb-2.5 border-b border-border/50">
+            <div className="px-4 sm:px-5 pt-4 pb-2.5 border-b border-border/50">
               <p className="text-xs font-medium text-muted-foreground">
                 LinkedIn post draft
               </p>
             </div>
             <div
-              className="px-5 pt-4 pb-12 min-h-[200px]"
+              className="px-4 sm:px-5 pt-4 pb-12 min-h-[160px] sm:min-h-[200px]"
               style={blur ? MASK : undefined}
             >
               <p className="text-sm leading-relaxed whitespace-pre-line">
@@ -100,13 +100,13 @@ export function ProofArtifactPreview({ artifact = MOCK_PROOF, blur = true }: Pro
 
           {/* Project spec */}
           <div className="overflow-hidden">
-            <div className="px-5 pt-4 pb-2.5 border-b border-border/50">
+            <div className="px-4 sm:px-5 pt-4 pb-2.5 border-b border-border/50">
               <p className="text-xs font-medium text-muted-foreground">
                 GitHub project spec
               </p>
             </div>
             <div
-              className="px-5 pt-4 pb-12 min-h-[200px]"
+              className="px-4 sm:px-5 pt-4 pb-12 min-h-[160px] sm:min-h-[200px]"
               style={blur ? MASK : undefined}
             >
               <p className="text-sm font-semibold mb-4 leading-snug">
@@ -134,13 +134,13 @@ export function ProofArtifactPreview({ artifact = MOCK_PROOF, blur = true }: Pro
         </div>
 
         {blur && (
-          <div className="px-5 py-3.5 border-t border-border bg-card-2 flex items-center justify-between">
+          <div className="px-4 sm:px-5 py-3.5 border-t border-border bg-card-2 flex items-center justify-between gap-3 flex-wrap">
             <p className="text-xs text-muted-foreground">
               Sign in to build your own proof trail
             </p>
             <Link
               href="/sign-up"
-              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors shrink-0"
             >
               Start for free
             </Link>
