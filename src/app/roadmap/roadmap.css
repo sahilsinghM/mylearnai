@@ -2,15 +2,22 @@
 
 .mr-topnav {
   height: 50px;
-  padding: 10px 20px;
+  padding: 10px 14px;
   border-bottom: 1px solid var(--border);
   background: var(--background);
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
   white-space: nowrap;
   flex-shrink: 0;
+}
+
+@media (min-width: 480px) {
+  .mr-topnav {
+    padding: 10px 20px;
+    gap: 12px;
+  }
 }
 
 .mr-topnav a,
@@ -58,7 +65,15 @@
   font-size: 13px;
   color: var(--muted-foreground);
   text-decoration: none;
-  padding: 6px 10px;
+  padding: 6px 8px;
+  display: none;
+}
+
+@media (min-width: 480px) {
+  .mr-signin-link {
+    display: block;
+    padding: 6px 10px;
+  }
 }
 
 .mr-signin-link:hover {
@@ -68,17 +83,43 @@
 .mr-cta-btn {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   background: var(--primary);
   color: var(--primary-foreground);
   border: none;
   border-radius: 8px;
-  padding: 7px 12px;
-  font-size: 13px;
+  padding: 7px 10px;
+  font-size: 12px;
   font-weight: 500;
   cursor: pointer;
   transition: opacity 0.14s;
   text-decoration: none;
+}
+
+@media (min-width: 480px) {
+  .mr-cta-btn {
+    padding: 7px 12px;
+    font-size: 13px;
+    gap: 6px;
+  }
+}
+
+/* Hide "Personalize for me" label on mobile, show icon + "Personalize" only */
+.mr-cta-btn-label-full {
+  display: none;
+}
+
+.mr-cta-btn-label-short {
+  display: inline;
+}
+
+@media (min-width: 480px) {
+  .mr-cta-btn-label-full {
+    display: inline;
+  }
+  .mr-cta-btn-label-short {
+    display: none;
+  }
 }
 
 .mr-cta-btn:hover {
@@ -308,13 +349,20 @@
 
 .mr-controls {
   position: absolute;
-  right: 18px;
-  bottom: 18px;
+  right: 12px;
+  bottom: 80px;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 4px;
   z-index: 10;
+}
+
+@media (min-width: 480px) {
+  .mr-controls {
+    right: 18px;
+    bottom: 18px;
+  }
 }
 
 .mr-zoom-pct {
@@ -365,13 +413,19 @@
   border: 1px solid var(--border);
   border-radius: 999px;
   padding: 7px 12px;
-  display: flex;
+  display: none;
   flex-direction: row;
   flex-wrap: wrap;
   gap: 4px 6px;
   align-items: center;
   z-index: 10;
   box-shadow: var(--shadow-hairline);
+}
+
+@media (min-width: 600px) {
+  .mr-legend {
+    display: flex;
+  }
 }
 
 .mr-legend-item {
@@ -412,20 +466,32 @@
   left: 50%;
   bottom: 18px;
   transform: translateX(-50%);
-  border-radius: 999px;
+  border-radius: 16px;
   background: var(--card);
   border: 1px solid color-mix(in oklab, var(--primary) 40%, var(--border));
   box-shadow: 0 4px 16px color-mix(in oklab, var(--foreground) 30%, transparent);
-  padding: 8px 8px 8px 16px;
+  padding: 10px 10px 10px 14px;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 14px;
+  gap: 10px;
+  width: calc(100vw - 32px);
   max-width: 540px;
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--foreground);
-  white-space: nowrap;
+  white-space: normal;
   z-index: 10;
+}
+
+@media (min-width: 480px) {
+  .mr-banner {
+    border-radius: 999px;
+    padding: 8px 8px 8px 16px;
+    font-size: 12.5px;
+    gap: 14px;
+    width: auto;
+    white-space: nowrap;
+  }
 }
 
 .mr-banner-eyebrow {
@@ -490,13 +556,20 @@
   top: 0;
   right: 0;
   z-index: 20;
-  width: min(460px, 92vw);
+  width: 100vw;
   height: 100%;
   overflow-y: auto;
   border-left: 1px solid var(--border);
   background: var(--card);
-  padding: 20px;
+  padding: 16px;
   box-shadow: -8px 0 24px color-mix(in oklab, var(--foreground) 16%, transparent);
+}
+
+@media (min-width: 480px) {
+  .mr-panel {
+    width: min(460px, 92vw);
+    padding: 20px;
+  }
 }
 
 .mr-panel-head {

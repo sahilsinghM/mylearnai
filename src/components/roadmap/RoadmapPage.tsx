@@ -174,6 +174,8 @@ export function RoadmapPage({ data }: Props) {
   const viewRef = useRef(view);
   useEffect(() => { viewRef.current = view; }, [view]);
 
+  const lastPinchDist = useRef<number | null>(null);
+
   useEffect(() => {
     const syncFromUrl = () => {
       const hashId = window.location.hash.slice(1);
@@ -194,12 +196,15 @@ export function RoadmapPage({ data }: Props) {
     if (!stage) return;
     const sw = stage.clientWidth;
     const sh = stage.clientHeight;
-    const padding = 56;
+    const isMobile = sw < 600;
+    const padding = isMobile ? 16 : 56;
     const scaleX = (sw - padding * 2) / canvasWidth;
     const scaleY = (sh - padding * 2) / canvasHeight;
-    const newScale = clamp(0.4, Math.min(scaleX, scaleY, 0.95), 2.0);
+    // Allow lower minimum on mobile so the full roadmap fits on screen
+    const minScale = isMobile ? 0.12 : 0.4;
+    const newScale = clamp(minScale, Math.min(scaleX, scaleY, 0.95), 2.0);
     const newX = (sw - canvasWidth * newScale) / 2;
-    const newY = (sh - canvasHeight * newScale) / 2;
+    const newY = Math.max(8, (sh - canvasHeight * newScale) / 2);
     setView({ x: newX, y: newY, scale: newScale });
   }, [canvasWidth, canvasHeight]);
 
@@ -255,6 +260,54 @@ export function RoadmapPage({ data }: Props) {
     dragStart.current = null;
   }, []);
 
+  // Touch pan + pinch-to-zoom
+  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    const target = e.target as HTMLElement;
+    if (target.closest(".mr-panel") || target.closest(".mr-controls") || target.closest(".mr-banner")) return;
+    if (e.touches.length === 1) {
+      dragStart.current = { mx: e.touches[0].clientX, my: e.touches[0].clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+      setDragging(true);
+      lastPinchDist.current = null;
+    } else if (e.touches.length === 2) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      lastPinchDist.current = Math.hypot(dx, dy);
+      dragStart.current = null;
+      setDragging(false);
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.touches.length === 1 && dragStart.current) {
+      const dx = e.touches[0].clientX - dragStart.current.mx;
+      const dy = e.touches[0].clientY - dragStart.current.my;
+      setView((v) => ({ ...v, x: dragStart.current!.vx + dx, y: dragStart.current!.vy + dy }));
+    } else if (e.touches.length === 2 && lastPinchDist.current !== null) {
+      const dx = e.touches[0].clientX - e.touches[1].clientX;
+      const dy = e.touches[0].clientY - e.touches[1].clientY;
+      const dist = Math.hypot(dx, dy);
+      const factor = dist / lastPinchDist.current;
+      lastPinchDist.current = dist;
+      const stage = stageRef.current;
+      if (!stage) return;
+      const rect = stage.getBoundingClientRect();
+      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+      setView((old) => {
+        const newScale = clamp(0.12, old.scale * factor, 2.0);
+        const ratio = newScale / old.scale;
+        return { x: midX - (midX - old.x) * ratio, y: midY - (midY - old.y) * ratio, scale: newScale };
+      });
+    }
+  }, []);
+
+  const handleTouchEnd = useCallback(() => {
+    setDragging(false);
+    dragStart.current = null;
+    lastPinchDist.current = null;
+  }, []);
+
   // Wheel zoom
   const handleWheel = useCallback((e: WheelEvent) => {
     if ((e.target as HTMLElement).closest(".mr-panel")) return;
@@ -266,7 +319,7 @@ export function RoadmapPage({ data }: Props) {
     const cy = e.clientY - rect.top;
     setView((old) => {
       const factor = 1 + -e.deltaY * 0.0015;
-      const newScale = clamp(0.4, old.scale * factor, 2.0);
+      const newScale = clamp(0.12, old.scale * factor, 2.0);
       const ratio = newScale / old.scale;
       const newX = cx - (cx - old.x) * ratio;
       const newY = cy - (cy - old.y) * ratio;
@@ -287,7 +340,7 @@ export function RoadmapPage({ data }: Props) {
     const cx = stage.clientWidth / 2;
     const cy = stage.clientHeight / 2;
     setView((old) => {
-      const newScale = clamp(0.4, old.scale * factor, 2.0);
+      const newScale = clamp(0.12, old.scale * factor, 2.0);
       const ratio = newScale / old.scale;
       const newX = cx - (cx - old.x) * ratio;
       const newY = cy - (cy - old.y) * ratio;
@@ -315,7 +368,8 @@ export function RoadmapPage({ data }: Props) {
         <Link href="/sign-in" className="mr-signin-link">Sign in</Link>
         <Link href="/sign-up?from=roadmap" className="mr-cta-btn">
           <Sparkle size={13} />
-          Personalize for me
+          <span className="mr-cta-btn-label-short">Personalize</span>
+          <span className="mr-cta-btn-label-full">Personalize for me</span>
           <ArrowRight size={13} />
         </Link>
       </nav>
@@ -337,6 +391,9 @@ export function RoadmapPage({ data }: Props) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Grid backdrop */}
         <div className="mr-grid" />
