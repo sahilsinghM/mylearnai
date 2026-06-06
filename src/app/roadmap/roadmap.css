@@ -1,12 +1,8 @@
 /* ── Master Roadmap page styles ── */
 
-/* Prevent iOS Safari bounce scroll and swipe-back navigation at the page level */
+/* Prevent iOS Safari bounce scroll at the page level */
 :root:has(.mr-stage) body {
   overscroll-behavior: none;
-  overflow: hidden;
-  position: fixed;
-  width: 100%;
-  height: 100%;
 }
 
 .mr-topnav {
@@ -168,9 +164,6 @@
   overflow: hidden;
   min-height: 0;
   background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--primary) 3%, transparent), var(--background));
-  /* Prevent browser from intercepting touch gestures (scroll, swipe-back, pinch-zoom)
-     so all touch input is handled by our own JavaScript handlers */
-  touch-action: none;
   overscroll-behavior: none;
 }
 

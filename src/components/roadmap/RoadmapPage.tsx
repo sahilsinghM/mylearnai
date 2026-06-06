@@ -305,7 +305,17 @@ export function RoadmapPage({ data }: Props) {
       }
     }
 
-    function onTouchEnd() {
+    function onTouchEnd(e: TouchEvent) {
+      // If finger barely moved, treat as a tap and fire click on the target
+      if (dragStart.current && e.changedTouches.length === 1) {
+        const t = e.changedTouches[0];
+        const dx = Math.abs(t.clientX - dragStart.current.mx);
+        const dy = Math.abs(t.clientY - dragStart.current.my);
+        if (dx < 8 && dy < 8) {
+          const el = document.elementFromPoint(t.clientX, t.clientY);
+          if (el) (el as HTMLElement).click();
+        }
+      }
       setDragging(false);
       dragStart.current = null;
       lastPinchDist.current = null;
