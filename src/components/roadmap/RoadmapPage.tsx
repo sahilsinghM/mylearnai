@@ -260,52 +260,65 @@ export function RoadmapPage({ data }: Props) {
     dragStart.current = null;
   }, []);
 
-  // Touch pan + pinch-to-zoom
-  const handleTouchStart = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    const target = e.target as HTMLElement;
-    if (target.closest(".mr-panel") || target.closest(".mr-controls") || target.closest(".mr-banner")) return;
-    if (e.touches.length === 1) {
-      dragStart.current = { mx: e.touches[0].clientX, my: e.touches[0].clientY, vx: viewRef.current.x, vy: viewRef.current.y };
-      setDragging(true);
-      lastPinchDist.current = null;
-    } else if (e.touches.length === 2) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      lastPinchDist.current = Math.hypot(dx, dy);
-      dragStart.current = null;
+  // Touch pan + pinch-to-zoom — attached natively so we can call preventDefault()
+  // (React onTouchMove is passive by default; preventDefault() on it throws an error)
+  useEffect(() => {
+    const stage = stageRef.current;
+    if (!stage) return;
+
+    function onTouchStart(e: TouchEvent) {
+      const target = e.target as HTMLElement;
+      if (target.closest(".mr-panel") || target.closest(".mr-controls") || target.closest(".mr-banner")) return;
+      if (e.touches.length === 1) {
+        dragStart.current = { mx: e.touches[0].clientX, my: e.touches[0].clientY, vx: viewRef.current.x, vy: viewRef.current.y };
+        setDragging(true);
+        lastPinchDist.current = null;
+      } else if (e.touches.length === 2) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        lastPinchDist.current = Math.hypot(dx, dy);
+        dragStart.current = null;
+        setDragging(false);
+      }
+    }
+
+    function onTouchMove(e: TouchEvent) {
+      e.preventDefault();
+      if (e.touches.length === 1 && dragStart.current) {
+        const dx = e.touches[0].clientX - dragStart.current.mx;
+        const dy = e.touches[0].clientY - dragStart.current.my;
+        setView((v) => ({ ...v, x: dragStart.current!.vx + dx, y: dragStart.current!.vy + dy }));
+      } else if (e.touches.length === 2 && lastPinchDist.current !== null) {
+        const dx = e.touches[0].clientX - e.touches[1].clientX;
+        const dy = e.touches[0].clientY - e.touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        const factor = dist / lastPinchDist.current;
+        lastPinchDist.current = dist;
+        const rect = (stage as HTMLDivElement).getBoundingClientRect();
+        const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
+        const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
+        setView((old) => {
+          const newScale = clamp(0.12, old.scale * factor, 2.0);
+          const ratio = newScale / old.scale;
+          return { x: midX - (midX - old.x) * ratio, y: midY - (midY - old.y) * ratio, scale: newScale };
+        });
+      }
+    }
+
+    function onTouchEnd() {
       setDragging(false);
+      dragStart.current = null;
+      lastPinchDist.current = null;
     }
-  }, []);
 
-  const handleTouchMove = useCallback((e: React.TouchEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    if (e.touches.length === 1 && dragStart.current) {
-      const dx = e.touches[0].clientX - dragStart.current.mx;
-      const dy = e.touches[0].clientY - dragStart.current.my;
-      setView((v) => ({ ...v, x: dragStart.current!.vx + dx, y: dragStart.current!.vy + dy }));
-    } else if (e.touches.length === 2 && lastPinchDist.current !== null) {
-      const dx = e.touches[0].clientX - e.touches[1].clientX;
-      const dy = e.touches[0].clientY - e.touches[1].clientY;
-      const dist = Math.hypot(dx, dy);
-      const factor = dist / lastPinchDist.current;
-      lastPinchDist.current = dist;
-      const stage = stageRef.current;
-      if (!stage) return;
-      const rect = stage.getBoundingClientRect();
-      const midX = (e.touches[0].clientX + e.touches[1].clientX) / 2 - rect.left;
-      const midY = (e.touches[0].clientY + e.touches[1].clientY) / 2 - rect.top;
-      setView((old) => {
-        const newScale = clamp(0.12, old.scale * factor, 2.0);
-        const ratio = newScale / old.scale;
-        return { x: midX - (midX - old.x) * ratio, y: midY - (midY - old.y) * ratio, scale: newScale };
-      });
-    }
-  }, []);
-
-  const handleTouchEnd = useCallback(() => {
-    setDragging(false);
-    dragStart.current = null;
-    lastPinchDist.current = null;
+    stage.addEventListener("touchstart", onTouchStart, { passive: true });
+    stage.addEventListener("touchmove", onTouchMove, { passive: false });
+    stage.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      stage.removeEventListener("touchstart", onTouchStart);
+      stage.removeEventListener("touchmove", onTouchMove);
+      stage.removeEventListener("touchend", onTouchEnd);
+    };
   }, []);
 
   // Wheel zoom
@@ -391,9 +404,6 @@ export function RoadmapPage({ data }: Props) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
       >
         {/* Grid backdrop */}
         <div className="mr-grid" />
