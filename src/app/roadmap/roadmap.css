@@ -159,6 +159,10 @@
   overflow: hidden;
   min-height: 0;
   background: radial-gradient(ellipse at 50% 0%, color-mix(in oklab, var(--primary) 3%, transparent), var(--background));
+  /* Prevent browser from intercepting touch gestures (scroll, swipe-back, pinch-zoom)
+     so all touch input is handled by our own JavaScript handlers */
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 .mr-stage[data-dragging="true"] {
