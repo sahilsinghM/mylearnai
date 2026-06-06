@@ -1,5 +1,14 @@
 /* ── Master Roadmap page styles ── */
 
+/* Prevent iOS Safari bounce scroll and swipe-back navigation at the page level */
+:root:has(.mr-stage) body {
+  overscroll-behavior: none;
+  overflow: hidden;
+  position: fixed;
+  width: 100%;
+  height: 100%;
+}
+
 .mr-topnav {
   height: 50px;
   padding: 10px 14px;
