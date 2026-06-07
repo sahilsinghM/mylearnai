@@ -2,7 +2,9 @@ import Anthropic from "@anthropic-ai/sdk";
 import { claudePlanSchema, type ClaudePlanOutput } from "./schemas";
 import { extractJsonFromResponse, SYSTEM_PROMPT } from "./prompts";
 
-const anthropic = new Anthropic({
+// Single shared Anthropic client. Reuse this instead of `new Anthropic(...)`
+// so the app has one place that configures the SDK.
+export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY!,
 });
 

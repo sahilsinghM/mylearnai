@@ -54,10 +54,18 @@ An interpreted behavioral event that informs Adaptation Agent decisions. In v1, 
 A major curriculum section grouping Master Nodes. Seven phases in the current graph: Foundations / Classical ML / Deep Learning / Transformers / LLMs / Agents & RAG / Production. Each phase has a distinct hue used in the graph visualization.
 
 **Track**
-Which path a Master Node belongs to, orthogonal to its Phase. Four values:
+Which path a Master Node belongs to, orthogonal to its Phase.
+
+> **Status (v1): collapsed to `spine`.** The `track` column was removed from
+> `master_roadmap_nodes`; every Master Node is treated as `spine` in code
+> (`buildMasterRoadmapData` defaults it). The four-value design below is
+> *intended* direction, not current behaviour. See ADR 0001. Do not build
+> features that read a node's track until the column and data are restored.
+
+Intended four values:
 - `spine` — the required builder path (working with LLMs → RAG → agents → evaluation → customizing → production). Every learner follows it.
 - `foundations` — optional math (linear algebra, probability, calculus).
 - `internals` — optional "how models work" depth (backprop, attention math, pretraining, RLHF).
 - `classical` — optional classical / tabular ML.
 
-Spine nodes connect with `required` edges; optional-track nodes connect with `recommended` / `contextual` edges so they are reachable but never block spine progress. Per-goal depth targets decide which optional tracks a given user actually follows — "Build AI products" keeps them shallow/skippable, "Research" promotes them.
+The intent: spine nodes connect with `required` edges; optional-track nodes connect with `recommended` / `contextual` edges so they are reachable but never block spine progress. Per-goal depth targets decide which optional tracks a given user actually follows — "Build AI products" keeps them shallow/skippable, "Research" promotes them.

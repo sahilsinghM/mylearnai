@@ -1,16 +1,19 @@
 import { unstable_cache } from "next/cache";
 import { createPublicClient } from "@/lib/supabase/server";
+import {
+  fetchMasterRoadmapRows,
+  type RawNode,
+  type RawEdge,
+  type RawResource,
+  type RawProject,
+} from "./masterRoadmapRepo";
 import type {
-  DepthLevel,
-  EdgeType,
   MasterEdge,
   MasterNode,
   MasterProject,
   MasterResource,
   MasterRoadmapData,
   Phase,
-  ResourceType,
-  Track,
 } from "./types";
 
 const PHASES: Phase[] = [
@@ -22,57 +25,6 @@ const PHASES: Phase[] = [
   { n: 6, label: "Agents & RAG",  hue: 50,  blurb: "Retrieval, tools, loops." },
   { n: 7, label: "Production",    hue: 25,  blurb: "Serving, observability, safety." },
 ];
-
-interface RawNode {
-  id: string;
-  title: string;
-  blurb: string;
-  phase: number;
-  row_index: number;
-  track?: Track; // dropped from the DB; defaulted to "spine" when building nodes
-  difficulty: MasterNode["diff"];
-  hours_awareness: number;
-  hours_working: number;
-  hours_fluent: number;
-  hours_expert: number;
-  relevance_fintech: number;
-  relevance_research: number;
-  relevance_mlops: number;
-  relevance_dev_tools: number;
-  relevance_education_ai: number;
-  skip_for_levels: MasterNode["skipForLevels"] | null;
-  depth_awareness: string | null;
-  depth_working: string | null;
-  depth_fluent: string | null;
-  depth_expert: string | null;
-}
-
-interface RawEdge {
-  from_node_id: string;
-  to_node_id: string;
-  edge_type: EdgeType;
-}
-
-interface RawResource {
-  id: string;
-  node_id: string;
-  title: string;
-  url: string;
-  resource_type: ResourceType | null;
-  depth_level: DepthLevel;
-  estimated_minutes: number | null;
-  is_free: boolean;
-}
-
-interface RawProject {
-  id: string;
-  node_id: string;
-  title: string;
-  description: string;
-  depth_level: MasterProject["depthLevel"];
-  deliverable: string | null;
-  estimated_hours: number | null;
-}
 
 export function buildMasterRoadmapData(
   rawNodes: RawNode[],
@@ -149,38 +101,8 @@ export function buildMasterRoadmapData(
 
 async function fetchMasterRoadmap(): Promise<MasterRoadmapData> {
   const supabase = createPublicClient();
-
-  const [
-    { data: rawNodes },
-    { data: rawEdges },
-    { data: rawResources },
-    { data: rawProjects },
-  ] = await Promise.all([
-    supabase
-      .from("master_roadmap_nodes")
-      // NOTE: `track` was dropped from the DB. Selecting it makes the whole query
-      // error and silently return zero nodes (see fallback below). Keep it out.
-      .select("id, title, blurb, phase, row_index, difficulty, hours_awareness, hours_working, hours_fluent, hours_expert, relevance_fintech, relevance_research, relevance_mlops, relevance_dev_tools, relevance_education_ai, skip_for_levels, depth_awareness, depth_working, depth_fluent, depth_expert")
-      .eq("is_published", true)
-      .order("phase")
-      .order("row_index"),
-    supabase
-      .from("master_roadmap_edges")
-      .select("from_node_id, to_node_id, edge_type"),
-    supabase
-      .from("master_roadmap_resources")
-      .select("id, node_id, title, url, resource_type, depth_level, estimated_minutes, is_free"),
-    supabase
-      .from("master_roadmap_projects")
-      .select("id, node_id, title, description, depth_level, deliverable, estimated_hours"),
-  ]);
-
-  return buildMasterRoadmapData(
-    (rawNodes ?? []) as RawNode[],
-    (rawEdges ?? []) as RawEdge[],
-    (rawResources ?? []) as RawResource[],
-    (rawProjects ?? []) as RawProject[]
-  );
+  const { rawNodes, rawEdges, rawResources, rawProjects } = await fetchMasterRoadmapRows(supabase);
+  return buildMasterRoadmapData(rawNodes, rawEdges, rawResources, rawProjects);
 }
 
 // Cache for 1 hour — the master roadmap changes rarely

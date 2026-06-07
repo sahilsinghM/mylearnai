@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { query, queryMaybe } from "@/lib/supabase/query";
 import type { RoadmapPlanGrounding } from "@/lib/anthropic/prompts";
 
 interface ActiveNodeRow {
@@ -55,46 +56,56 @@ export async function getActiveRoadmapGrounding(
   supabase: SupabaseClient,
   userId: string
 ): Promise<RoadmapPlanGrounding | null> {
-  const { data: roadmap } = await supabase
-    .from("user_roadmaps")
-    .select("active_node_id")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const roadmap = await queryMaybe<{ active_node_id: string | null }>(
+    supabase
+      .from("user_roadmaps")
+      .select("active_node_id")
+      .eq("user_id", userId)
+      .maybeSingle(),
+    "user_roadmaps",
+  );
   if (!roadmap?.active_node_id) return null;
 
-  const [{ data: node }, { data: state }] = await Promise.all([
-    supabase
-      .from("master_roadmap_nodes")
-      .select("title")
-      .eq("id", roadmap.active_node_id)
-      .maybeSingle(),
-    supabase
-      .from("user_node_states")
-      .select("depth_target")
-      .eq("user_id", userId)
-      .eq("node_id", roadmap.active_node_id)
-      .maybeSingle(),
+  const [node, state] = await Promise.all([
+    queryMaybe<ActiveNodeRow>(
+      supabase
+        .from("master_roadmap_nodes")
+        .select("title")
+        .eq("id", roadmap.active_node_id)
+        .maybeSingle(),
+      "grounding node",
+    ),
+    queryMaybe<NodeStateRow>(
+      supabase
+        .from("user_node_states")
+        .select("depth_target")
+        .eq("user_id", userId)
+        .eq("node_id", roadmap.active_node_id)
+        .maybeSingle(),
+      "grounding state",
+    ),
   ]);
   if (!node || !state) return null;
 
-  const [{ data: resources }, { data: projects }] = await Promise.all([
-    supabase
-      .from("master_roadmap_resources")
-      .select("title, url, resource_type, estimated_minutes")
-      .eq("node_id", roadmap.active_node_id)
-      .eq("depth_level", state.depth_target),
-    supabase
-      .from("master_roadmap_projects")
-      .select("title, description, deliverable, estimated_hours")
-      .eq("node_id", roadmap.active_node_id)
-      .eq("depth_level", state.depth_target)
-      .limit(1),
+  const [resources, projects] = await Promise.all([
+    query<ResourceRow>(
+      supabase
+        .from("master_roadmap_resources")
+        .select("title, url, resource_type, estimated_minutes")
+        .eq("node_id", roadmap.active_node_id)
+        .eq("depth_level", state.depth_target),
+      "grounding resources",
+    ),
+    query<ProjectRow>(
+      supabase
+        .from("master_roadmap_projects")
+        .select("title, description, deliverable, estimated_hours")
+        .eq("node_id", roadmap.active_node_id)
+        .eq("depth_level", state.depth_target)
+        .limit(1),
+      "grounding projects",
+    ),
   ]);
 
-  return buildRoadmapPlanGrounding(
-    node,
-    state,
-    resources ?? [],
-    projects ?? []
-  );
+  return buildRoadmapPlanGrounding(node, state, resources, projects);
 }
