@@ -29,9 +29,6 @@ export function HeroSection() {
         <Button asChild size="lg" className="w-full sm:w-auto">
           <Link href="/sign-up">Start with one session</Link>
         </Button>
-        <Button asChild variant="outline" size="lg" className="w-full sm:w-auto">
-          <Link href="/roadmap">Explore the roadmap</Link>
-        </Button>
       </div>
       <p className="text-xs" style={{ color: "oklch(0.48 0 0)" }}>
         Free to start. No credit card.

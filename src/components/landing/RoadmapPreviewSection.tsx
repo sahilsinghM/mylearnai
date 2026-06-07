@@ -30,19 +30,20 @@ export function RoadmapPreviewSection() {
         </p>
       </div>
 
-      {/* Desktop: live iframe */}
+      {/* Desktop: static SVG preview — loads instantly, no JS, no layout shift */}
       <Link
         href="/roadmap"
         className="relative w-full rounded-xl overflow-hidden border border-border hover:border-primary/30 transition-colors duration-200 group hidden md:block"
         style={{ aspectRatio: "16/9" }}
         aria-label="Explore the AI engineering roadmap"
       >
-        <iframe
-          src="/roadmap"
-          className="w-full h-full pointer-events-none"
-          tabIndex={-1}
-          aria-hidden="true"
+        <img
+          src="/roadmap.svg"
+          alt="AI engineering roadmap — 7 phases from Foundations to Production"
+          className="w-full h-full object-cover object-top"
           loading="lazy"
+          width={1600}
+          height={900}
         />
         <div className="absolute inset-0 flex items-end justify-center pb-6 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
           <span className="text-sm font-medium px-4 py-2 rounded-md bg-card border border-border">

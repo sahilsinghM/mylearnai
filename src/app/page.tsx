@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { ProofArtifactPreview } from "@/components/landing/ProofArtifactPreview";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
-import { RoadmapPreviewSection } from "@/components/landing/RoadmapPreviewSection";
 
 export default async function LandingPage() {
   const supabase = await createClient();
@@ -68,14 +67,6 @@ export default async function LandingPage() {
 
         <HowItWorksSection />
 
-        <div
-          className="w-full max-w-5xl mx-auto px-4"
-          aria-hidden="true"
-        >
-          <div className="border-t border-border/30" />
-        </div>
-
-        <RoadmapPreviewSection />
       </main>
     </div>
   );
