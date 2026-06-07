@@ -1,0 +1,372 @@
+<svg class="mr-roadmap-svg" xmlns="http://www.w3.org/2000/svg" width="1000" height="2494" viewBox="0 0 1000 2494">
+<g class="mr-spine-group">
+<line class="mr-spine-cap" x1="500" y1="36" x2="500" y2="156"
+    stroke="oklch(0.36 0 0)" stroke-width="2" stroke-dasharray="2 7" stroke-linecap="round" />
+  <line class="mr-spine" x1="500" y1="156" x2="500" y2="2412"
+    stroke="oklch(0.36 0 0)" stroke-width="2" />
+</g>
+<g class="mr-branches">
+<path class="mr-branch" d="M561.5,156 C590.75,156 590.75,66 620,66" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M561.5,156 C590.75,156 590.75,126 620,126" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M561.5,156 C590.75,156 590.75,186 620,186" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M561.5,156 C590.75,156 590.75,246 620,246" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,480 C407.25,480 407.25,360 380,360" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,480 C407.25,480 407.25,420 380,420" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,480 C407.25,480 407.25,480 380,480" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,480 C407.25,480 407.25,540 380,540" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,480 C407.25,480 407.25,600 380,600" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M569,834 C594.5,834 594.5,714 620,714" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M569,834 C594.5,834 594.5,774 620,774" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M569,834 C594.5,834 594.5,834 620,834" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M569,834 C594.5,834 594.5,894 620,894" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M569,834 C594.5,834 594.5,954 620,954" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1188 C407.25,1188 407.25,1068 380,1068" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1188 C407.25,1188 407.25,1128 380,1128" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1188 C407.25,1188 407.25,1188 380,1188" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1188 C407.25,1188 407.25,1248 380,1248" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1188 C407.25,1188 407.25,1308 380,1308" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M552,1542 C586,1542 586,1422 620,1422" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M552,1542 C586,1542 586,1482 620,1482" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M552,1542 C586,1542 586,1542 620,1542" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M552,1542 C586,1542 586,1602 620,1602" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M552,1542 C586,1542 586,1662 620,1662" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1896 C407.25,1896 407.25,1776 380,1776" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1896 C407.25,1896 407.25,1836 380,1836" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1896 C407.25,1896 407.25,1896 380,1896" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1896 C407.25,1896 407.25,1956 380,1956" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M434.5,1896 C407.25,1896 407.25,2016 380,2016" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M558,2220 C589,2220 589,2130 620,2130" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M558,2220 C589,2220 589,2190 620,2190" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M558,2220 C589,2220 589,2250 620,2250" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+<path class="mr-branch" d="M558,2220 C589,2220 589,2310 620,2310" fill="none" stroke="oklch(0.4 0 0)"
+    stroke-width="1.5" stroke-dasharray="2 5" stroke-linecap="round" />
+</g>
+<g class="mr-milestones">
+<g class="mr-milestone" data-phase="1">
+  <rect x="438.5" y="132" width="123" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="452.5" cy="156" r="3.5" fill="oklch(0.72 0.14 220)" />
+  <text x="464.5" y="157" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">Foundations</text>
+</g>
+<g class="mr-milestone" data-phase="2">
+  <rect x="434.5" y="456" width="131" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="448.5" cy="480" r="3.5" fill="oklch(0.72 0.14 155)" />
+  <text x="460.5" y="481" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">Classical ML</text>
+</g>
+<g class="mr-milestone" data-phase="3">
+  <rect x="431" y="810" width="138" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="445" cy="834" r="3.5" fill="oklch(0.72 0.14 264)" />
+  <text x="457" y="835" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">Deep Learning</text>
+</g>
+<g class="mr-milestone" data-phase="4">
+  <rect x="434.5" y="1164" width="131" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="448.5" cy="1188" r="3.5" fill="oklch(0.72 0.14 305)" />
+  <text x="460.5" y="1189" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">Transformers</text>
+</g>
+<g class="mr-milestone" data-phase="5">
+  <rect x="448" y="1518" width="104" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="462" cy="1542" r="3.5" fill="oklch(0.72 0.14 340)" />
+  <text x="474" y="1543" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">LLMs</text>
+</g>
+<g class="mr-milestone" data-phase="6">
+  <rect x="434.5" y="1872" width="131" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="448.5" cy="1896" r="3.5" fill="oklch(0.72 0.14 50)" />
+  <text x="460.5" y="1897" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">Agents &amp; RAG</text>
+</g>
+<g class="mr-milestone" data-phase="7">
+  <rect x="442" y="2196" width="116" height="48" rx="6"
+    fill="oklch(0.235 0 0)" stroke="oklch(0.45 0 0)" stroke-width="1.5" />
+  <circle cx="456" cy="2220" r="3.5" fill="oklch(0.72 0.14 25)" />
+  <text x="468" y="2221" text-anchor="start" dominant-baseline="central"
+    font-size="15" font-weight="600" fill="oklch(0.95 0 0)">Production</text>
+</g>
+</g>
+<g class="nodes">
+<g class="node" data-node-id="python-proficiency" style="cursor:pointer">
+  <rect x="620" y="44" width="175" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="66" r="3.5" fill="oklch(0.72 0.14 220)" />
+  <text x="646" y="67" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Python Proficiency</text>
+</g>
+<g class="node" data-node-id="linear-algebra" style="cursor:pointer">
+  <rect x="620" y="104" width="146" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="126" r="3.5" fill="oklch(0.72 0.14 220)" />
+  <text x="646" y="127" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Linear Algebra</text>
+</g>
+<g class="node" data-node-id="probability-stats" style="cursor:pointer">
+  <rect x="620" y="164" width="220" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="186" r="3.5" fill="oklch(0.72 0.14 220)" />
+  <text x="646" y="187" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Probability &amp; Statistics</text>
+</g>
+<g class="node" data-node-id="calculus-optimization" style="cursor:pointer">
+  <rect x="620" y="224" width="212" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="246" r="3.5" fill="oklch(0.72 0.14 220)" />
+  <text x="646" y="247" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Calculus &amp; Optimization</text>
+</g>
+<g class="node" data-node-id="supervised-learning" style="cursor:pointer">
+  <rect x="197" y="338" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="211" cy="360" r="3.5" fill="oklch(0.72 0.14 155)" />
+  <text x="223" y="361" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Supervised Learning</text>
+</g>
+<g class="node" data-node-id="feature-engineering" style="cursor:pointer">
+  <rect x="197" y="398" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="211" cy="420" r="3.5" fill="oklch(0.72 0.14 155)" />
+  <text x="223" y="421" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Feature Engineering</text>
+</g>
+<g class="node" data-node-id="model-evaluation" style="cursor:pointer">
+  <rect x="220" y="458" width="160" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="234" cy="480" r="3.5" fill="oklch(0.72 0.14 155)" />
+  <text x="246" y="481" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Model Evaluation</text>
+</g>
+<g class="node" data-node-id="xgboost-trees" style="cursor:pointer">
+  <rect x="175" y="518" width="205" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="189" cy="540" r="3.5" fill="oklch(0.72 0.14 155)" />
+  <text x="201" y="541" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Gradient-Boosted Trees</text>
+</g>
+<g class="node" data-node-id="shap-explainability" style="cursor:pointer">
+  <rect x="183" y="578" width="197" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="197" cy="600" r="3.5" fill="oklch(0.72 0.14 155)" />
+  <text x="209" y="601" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Explainability &amp; SHAP</text>
+</g>
+<g class="node" data-node-id="neural-networks-mlp" style="cursor:pointer">
+  <rect x="620" y="692" width="205" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="714" r="3.5" fill="oklch(0.72 0.14 264)" />
+  <text x="646" y="715" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Neural Networks &amp; MLPs</text>
+</g>
+<g class="node" data-node-id="pytorch-basics" style="cursor:pointer">
+  <rect x="620" y="752" width="104" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="774" r="3.5" fill="oklch(0.72 0.14 264)" />
+  <text x="646" y="775" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">PyTorch</text>
+</g>
+<g class="node" data-node-id="autograd-backprop" style="cursor:pointer">
+  <rect x="620" y="812" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="834" r="3.5" fill="oklch(0.72 0.14 264)" />
+  <text x="646" y="835" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Autograd &amp; Backprop</text>
+</g>
+<g class="node" data-node-id="training-dynamics" style="cursor:pointer">
+  <rect x="620" y="872" width="168" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="894" r="3.5" fill="oklch(0.72 0.14 264)" />
+  <text x="646" y="895" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Training Dynamics</text>
+</g>
+<g class="node" data-node-id="regularization" style="cursor:pointer">
+  <rect x="620" y="932" width="146" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="954" r="3.5" fill="oklch(0.72 0.14 264)" />
+  <text x="646" y="955" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Regularisation</text>
+</g>
+<g class="node" data-node-id="embeddings-tokenization" style="cursor:pointer">
+  <rect x="153" y="1046" width="227" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="167" cy="1068" r="3.5" fill="oklch(0.72 0.14 305)" />
+  <text x="179" y="1069" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Embeddings &amp; Tokenization</text>
+</g>
+<g class="node" data-node-id="self-attention" style="cursor:pointer">
+  <rect x="234" y="1106" width="146" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="248" cy="1128" r="3.5" fill="oklch(0.72 0.14 305)" />
+  <text x="260" y="1129" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Self-Attention</text>
+</g>
+<g class="node" data-node-id="positional-encoding" style="cursor:pointer">
+  <rect x="197" y="1166" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="211" cy="1188" r="3.5" fill="oklch(0.72 0.14 305)" />
+  <text x="223" y="1189" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Positional Encoding</text>
+</g>
+<g class="node" data-node-id="multi-head-attention" style="cursor:pointer">
+  <rect x="190" y="1226" width="190" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="204" cy="1248" r="3.5" fill="oklch(0.72 0.14 305)" />
+  <text x="216" y="1249" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Multi-Head Attention</text>
+</g>
+<g class="node" data-node-id="transformer-block" style="cursor:pointer">
+  <rect x="183" y="1286" width="197" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="197" cy="1308" r="3.5" fill="oklch(0.72 0.14 305)" />
+  <text x="209" y="1309" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">The Transformer Block</text>
+</g>
+<g class="node" data-node-id="prompt-engineering" style="cursor:pointer">
+  <rect x="620" y="1400" width="175" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="1422" r="3.5" fill="oklch(0.72 0.14 340)" />
+  <text x="646" y="1423" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Prompt Engineering</text>
+</g>
+<g class="node" data-node-id="pretraining-objectives" style="cursor:pointer">
+  <rect x="620" y="1460" width="205" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="1482" r="3.5" fill="oklch(0.72 0.14 340)" />
+  <text x="646" y="1483" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Pretraining Objectives</text>
+</g>
+<g class="node" data-node-id="fine-tuning-lora" style="cursor:pointer">
+  <rect x="620" y="1520" width="175" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="1542" r="3.5" fill="oklch(0.72 0.14 340)" />
+  <text x="646" y="1543" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Fine-tuning &amp; LoRA</text>
+</g>
+<g class="node" data-node-id="evaluation-llms" style="cursor:pointer">
+  <rect x="620" y="1580" width="153" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="1602" r="3.5" fill="oklch(0.72 0.14 340)" />
+  <text x="646" y="1603" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Evaluating LLMs</text>
+</g>
+<g class="node" data-node-id="rlhf-alignment" style="cursor:pointer">
+  <rect x="620" y="1640" width="160" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="1662" r="3.5" fill="oklch(0.72 0.14 340)" />
+  <text x="646" y="1663" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">RLHF &amp; Alignment</text>
+</g>
+<g class="node" data-node-id="vector-databases" style="cursor:pointer">
+  <rect x="220" y="1754" width="160" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="234" cy="1776" r="3.5" fill="oklch(0.72 0.14 50)" />
+  <text x="246" y="1777" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Vector Databases</text>
+</g>
+<g class="node" data-node-id="rag-engineering" style="cursor:pointer">
+  <rect x="227" y="1814" width="153" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="241" cy="1836" r="3.5" fill="oklch(0.72 0.14 50)" />
+  <text x="253" y="1837" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">RAG Engineering</text>
+</g>
+<g class="node" data-node-id="agent-architectures" style="cursor:pointer">
+  <rect x="197" y="1874" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="211" cy="1896" r="3.5" fill="oklch(0.72 0.14 50)" />
+  <text x="223" y="1897" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Agent Architectures</text>
+</g>
+<g class="node" data-node-id="tool-use-function-calling" style="cursor:pointer">
+  <rect x="138" y="1934" width="242" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="152" cy="1956" r="3.5" fill="oklch(0.72 0.14 50)" />
+  <text x="164" y="1957" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Tool Use &amp; Function Calling</text>
+</g>
+<g class="node" data-node-id="multi-agent-systems" style="cursor:pointer">
+  <rect x="197" y="1994" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="211" cy="2016" r="3.5" fill="oklch(0.72 0.14 50)" />
+  <text x="223" y="2017" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Multi-Agent Systems</text>
+</g>
+<g class="node" data-node-id="model-serving" style="cursor:pointer">
+  <rect x="620" y="2108" width="138" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="2130" r="3.5" fill="oklch(0.72 0.14 25)" />
+  <text x="646" y="2131" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Model Serving</text>
+</g>
+<g class="node" data-node-id="observability-monitoring" style="cursor:pointer">
+  <rect x="620" y="2168" width="138" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="2190" r="3.5" fill="oklch(0.72 0.14 25)" />
+  <text x="646" y="2191" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Observability</text>
+</g>
+<g class="node" data-node-id="cost-optimization" style="cursor:pointer">
+  <rect x="620" y="2228" width="168" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="2250" r="3.5" fill="oklch(0.72 0.14 25)" />
+  <text x="646" y="2251" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Cost Optimisation</text>
+</g>
+<g class="node" data-node-id="safety-guardrails" style="cursor:pointer">
+  <rect x="620" y="2288" width="183" height="44" rx="6"
+    fill="oklch(0.19 0 0)" stroke="oklch(0.34 0 0)" stroke-width="1" />
+  <circle cx="634" cy="2310" r="3.5" fill="oklch(0.72 0.14 25)" />
+  <text x="646" y="2311" text-anchor="start" dominant-baseline="central"
+    font-size="14" font-weight="500" fill="oklch(0.88 0 0)">Safety &amp; Guardrails</text>
+</g>
+</g>
+<g class="mr-ending">
+  <text x="500" y="2356" text-anchor="middle" font-size="11" font-weight="600"
+    letter-spacing="1.4" fill="oklch(0.64 0.19 264)" class="mr-eyebrow-text">YOUR NEXT STEP</text>
+  <text x="500" y="2374" text-anchor="middle" font-size="13.5" fill="oklch(0.88 0 0)">
+    This is the path before it knows you. Make it yours.</text>
+  <a href="/sign-up?from=roadmap" class="mr-cta-node" aria-label="Personalize this roadmap for me">
+    <rect x="376" y="2386" width="248" height="52" rx="8"
+      fill="oklch(0.55 0.2 264)" stroke="oklch(0.55 0.2 264)" stroke-width="1" />
+    <text x="500" y="2413" text-anchor="middle" dominant-baseline="central"
+      font-size="15" font-weight="600" fill="oklch(0.98 0 0)">Personalize this for me  →</text>
+  </a>
+</g>
+</svg>
